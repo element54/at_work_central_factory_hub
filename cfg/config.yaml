@@ -3,7 +3,7 @@
 # Main configuration document
 
 llsfrb:
-  plugins: "conveyor_belt"
+  plugins: "conveyor_belt,rotating_turntable"
 
   log:
     level: info
@@ -112,7 +112,7 @@ llsfrb:
       #recv-port: !udp-port 4467
 
   mongodb:
-    enable: true
+    enable: false
     hostport: localhost
     collections:
       text-log: llsfrb.log

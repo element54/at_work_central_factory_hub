@@ -11,6 +11,7 @@
 #include <msgs/BenchmarkControl.pb.h>
 #include <msgs/BenchmarkState.pb.h>
 #include <msgs/ConveyorBelt.pb.h>
+#include <msgs/RotatingTurntable.pb.h>
 
 #include <gtkmm.h>
 #include <pangomm.h>
@@ -229,6 +230,26 @@ void on_cb_stop_click()
   client.send(msg);
 }
 
+void on_rtt_start_click()
+{
+  if (!client.connected()) return;
+
+  atwork_pb_msgs::RotatingTurntableCommand msg;
+  msg.set_command(atwork_pb_msgs::RTT_START);
+  client.send(msg);
+}
+
+
+void on_rtt_stop_click()
+{
+  if (!client.connected()) return;
+
+  atwork_pb_msgs::RotatingTurntableCommand msg;
+  msg.set_command(atwork_pb_msgs::RTT_STOP);
+  client.send(msg);
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -255,6 +276,8 @@ int main(int argc, char **argv)
   Gtk::Button *button_reset = 0;
   Gtk::Button *button_cb_start = 0;
   Gtk::Button *button_cb_stop = 0;
+  Gtk::Button *button_rtt_start = 0;
+  Gtk::Button *button_rtt_stop = 0;
   builder->get_widget("button_start", button_start);
   builder->get_widget("button_pause", button_pause);
   builder->get_widget("button_stop", button_stop);
@@ -263,6 +286,8 @@ int main(int argc, char **argv)
   builder->get_widget("button_reset", button_reset);
   builder->get_widget("button_cb_start", button_cb_start);
   builder->get_widget("button_cb_stop", button_cb_stop);
+  builder->get_widget("button_rtt_start", button_rtt_start);
+  builder->get_widget("button_rtt_stop", button_rtt_stop);
 
   Glib::signal_timeout().connect(sigc::ptr_fun(&timeout_handler), 100);
   button_start->signal_clicked().connect(sigc::ptr_fun(&on_start_click));
@@ -273,6 +298,8 @@ int main(int argc, char **argv)
   button_reset->signal_clicked().connect(sigc::ptr_fun(&on_reset_click));
   button_cb_start->signal_clicked().connect(sigc::ptr_fun(&on_cb_start_click));
   button_cb_stop->signal_clicked().connect(sigc::ptr_fun(&on_cb_stop_click));
+  button_rtt_start->signal_clicked().connect(sigc::ptr_fun(&on_rtt_start_click));
+  button_rtt_stop->signal_clicked().connect(sigc::ptr_fun(&on_rtt_stop_click));
 
   client.signal_received().connect(handle_message);
   client.signal_disconnected().connect(handle_disconnect);

@@ -17,6 +17,6 @@ BASEDIR = ../..
 
 include $(BASEDIR)/etc/buildsys/config.mk
 
-SUBDIRS = msgs conveyor_belt
+SUBDIRS = msgs conveyor_belt rotating_turntable
 
 include $(BUILDSYSDIR)/base.mk

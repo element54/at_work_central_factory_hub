@@ -32,4 +32,10 @@
   (printout t "Enabling Conveyor Belt" crlf)
   (load* (resolve-file device-conveyor-belt.clp))
 )
+(defrule load-rotating-turntable
+  (init)
+  =>
+  (printout t "Enabling RTT" crlf)
+  (load* (resolve-file device-rotating-turntable.clp))
+)
 
