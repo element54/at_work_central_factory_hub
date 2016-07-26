@@ -19,10 +19,12 @@ include $(BUILDSYSDIR)/boost.mk
 include $(BUILDSYSDIR)/libzmq.mk
 include $(BASEDIR)/atwork/atwork.mk
 
+include $(BUILDCONFDIR)/netcomm/netcomm.mk
+
 REQ_BOOST_LIBS = thread system
 HAVE_BOOST_LIBS = $(call boost-have-libs,$(REQ_BOOST_LIBS))
 
-LIBS_rotating_turntable = llsfrbcore llsfrbaspects atwork_plugin_msgs
+LIBS_rotating_turntable = llsfrbcore llsfrbaspects atwork_plugin_msgs llsfrbnetcomm
 OBJS_rotating_turntable = rotating_turntable_plugin.o rotating_turntable_thread.o
 
 ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_LIBZMQ)$(HAVE_BOOST_LIBS),1111)

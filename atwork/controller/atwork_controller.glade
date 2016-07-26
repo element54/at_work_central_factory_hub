@@ -12,16 +12,6 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-stop</property>
   </object>
-  <object class="GtkImage" id="image_rtt_start">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-play</property>
-  </object>
-  <object class="GtkImage" id="image_rtt_stop">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-media-stop</property>
-  </object>
   <object class="GtkImage" id="image_ctrl_next">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -43,6 +33,16 @@
     <property name="stock">gtk-refresh</property>
   </object>
   <object class="GtkImage" id="image_ctrl_stop">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-stop</property>
+  </object>
+  <object class="GtkImage" id="image_rtt_start">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-media-play</property>
+  </object>
+  <object class="GtkImage" id="image_rtt_stop">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-stop</property>
@@ -339,7 +339,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="fram5">
+          <object class="GtkFrame" id="frame5">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label_xalign">0</property>

@@ -24,6 +24,34 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
 
+
+#include <netcomm/dns-sd/avahi_thread.h>
+#include <netcomm/dns-sd/avahi_resolver_handler.h>
+
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+class AHandler: public fawkes::ServiceBrowseHandler {
+    public:
+        virtual void all_for_now() {}
+        virtual void cache_exhausted() {}
+        virtual void browse_failed(const char *name, const char *type, const char *domain) {}
+        virtual void service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags ) {
+            /*char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
+            std::cout << "Name: " << name << std::endl;
+            std::cout << "Type: " << type << std::endl;
+            std::cout << "Domain: " << domain << std::endl;
+            std::cout << "Hostname: " << host_name << std::endl;
+            std::cout << "Addr: " << ip << std::endl;
+            std::cout << "Port: " << port << std::endl;*/
+            std::cout << "ADDED" << std::endl;
+        }
+        virtual void service_removed(const char *name, const char *type, const char *domain) {
+            std::cout << "REMOVED" << std::endl;
+        }
+};
+
 /** @class RotatingTurntableThread
  * Thread to communicate with @Work conveyor belt.
  * @author Frederik Hegger
@@ -41,7 +69,10 @@ void RotatingTurntableThread::init()
 
     clips->add_function("rotating-turntable-start", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_start_rotating_turntable)));
     clips->add_function("rotating-turntable-stop", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_stop_rotating_turntable)));
-
+    avahi_resolver_handler_ = new AHandler();
+    avahi_thread_ = new fawkes::AvahiThread();
+    avahi_thread_->watch_service("_property_server._tcp", avahi_resolver_handler_);
+    avahi_thread_->start();
     //if (!clips->build("(deffacts have-feature-conveyor-belt (have-feature ConveyorBelt))"))
     //    logger->log_warn("ConveyorBelt", "Failed to build deffacts have-feature-conveyor-belt");
 }
@@ -64,4 +95,3 @@ void RotatingTurntableThread::clips_stop_rotating_turntable()
 {
     std::cout << "STOPSTOP" << std::endl;
 }
-

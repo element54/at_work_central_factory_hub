@@ -26,6 +26,8 @@
 #include <aspect/clips.h>
 #include <aspect/configurable.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <netcomm/dns-sd/avahi_thread.h>
+#include <netcomm/dns-sd/avahi_resolver_handler.h>
 
 class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect, public fawkes::CLIPSAspect
 {
@@ -37,6 +39,8 @@ class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspe
         virtual void finalize();
 
     private:
+        fawkes::AvahiThread *avahi_thread_;
+        fawkes::ServiceBrowseHandler *avahi_resolver_handler_;
         void clips_start_rotating_turntable();
         void clips_stop_rotating_turntable();
     private:
