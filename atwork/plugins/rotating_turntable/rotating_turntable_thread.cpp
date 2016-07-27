@@ -32,25 +32,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-class AHandler: public fawkes::ServiceBrowseHandler {
-    public:
-        virtual void all_for_now() {}
-        virtual void cache_exhausted() {}
-        virtual void browse_failed(const char *name, const char *type, const char *domain) {}
-        virtual void service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags ) {
-            /*char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
-            std::cout << "Name: " << name << std::endl;
-            std::cout << "Type: " << type << std::endl;
-            std::cout << "Domain: " << domain << std::endl;
-            std::cout << "Hostname: " << host_name << std::endl;
-            std::cout << "Addr: " << ip << std::endl;
-            std::cout << "Port: " << port << std::endl;*/
-            std::cout << "ADDED" << std::endl;
-        }
-        virtual void service_removed(const char *name, const char *type, const char *domain) {
-            std::cout << "REMOVED" << std::endl;
-        }
-};
+
 
 /** @class RotatingTurntableThread
  * Thread to communicate with @Work conveyor belt.
@@ -69,9 +51,8 @@ void RotatingTurntableThread::init()
 
     clips->add_function("rotating-turntable-start", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_start_rotating_turntable)));
     clips->add_function("rotating-turntable-stop", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_stop_rotating_turntable)));
-    avahi_resolver_handler_ = new AHandler();
     avahi_thread_ = new fawkes::AvahiThread();
-    avahi_thread_->watch_service("_property_server._tcp", avahi_resolver_handler_);
+    avahi_thread_->watch_service("_property_server._tcp", this);
     avahi_thread_->start();
     //if (!clips->build("(deffacts have-feature-conveyor-belt (have-feature ConveyorBelt))"))
     //    logger->log_warn("ConveyorBelt", "Failed to build deffacts have-feature-conveyor-belt");
@@ -79,6 +60,7 @@ void RotatingTurntableThread::init()
 
 void RotatingTurntableThread::finalize()
 {
+    delete avahi_thread_;
 }
 
 void RotatingTurntableThread::loop()
@@ -94,4 +76,35 @@ void RotatingTurntableThread::clips_start_rotating_turntable()
 void RotatingTurntableThread::clips_stop_rotating_turntable()
 {
     std::cout << "STOPSTOP" << std::endl;
+}
+
+void RotatingTurntableThread::all_for_now() {}
+void RotatingTurntableThread::cache_exhausted() {}
+void RotatingTurntableThread::browse_failed(const char *name, const char *type, const char *domain) {}
+void RotatingTurntableThread::service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags ) {
+    std::cout << "ADDED" << std::endl;
+    char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
+    std::string url = "http://";
+    url.append(ip);
+    url.append(":");
+    url.append(std::to_string(port));
+    std::cout << url << std::endl;
+    std::cout << "Name: " << name << std::endl;
+    std::cout << "Type: " << type << std::endl;
+    std::cout << "Domain: " << domain << std::endl;
+    using namespace utility;                    // Common utilities like string conversions
+    using namespace web;                        // Common features like URIs.
+    using namespace web::http;                  // Common HTTP functionality
+    using namespace web::http::client;          // HTTP client features
+    using namespace concurrency::streams;       // Asynchronous streams
+    http_client *client = new http_client(url);
+    http_response response = client->request(methods::GET, "/devices/rtt").get();
+    std::cout << "YYYYYEEEEESSSSSSS" << std::endl;
+    std::cout << "Code: " << response.status_code() << std::endl;
+    std::string body = response.extract_string(true).get();
+    std::cout << "Content: " << body << std::endl;
+    std::cout << "YYYYYEEEEESSSSSSS2" << std::endl;
+}
+void RotatingTurntableThread::service_removed(const char *name, const char *type, const char *domain) {
+    std::cout << "REMOVED" << std::endl;
 }
