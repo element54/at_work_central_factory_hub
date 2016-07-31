@@ -49,8 +49,13 @@ void RotatingTurntableThread::init()
 {
     fawkes::MutexLocker lock(clips_mutex);
 
-    clips->add_function("rotating-turntable-start", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_start_rotating_turntable)));
-    clips->add_function("rotating-turntable-stop", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_stop_rotating_turntable)));
+    clips->add_function("rotating-turntable-start", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_start)));
+    clips->add_function("rotating-turntable-stop", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_stop)));
+    clips->add_function("rotating-turntable-is-running", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_running)));
+    clips->add_function("rotating-turntable-is-connected", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_connected)));
+
+    http_client_ = nullptr;
+
     avahi_thread_ = new fawkes::AvahiThread();
     avahi_thread_->watch_service("_property_server._tcp", this);
     avahi_thread_->start();
@@ -65,46 +70,63 @@ void RotatingTurntableThread::finalize()
 
 void RotatingTurntableThread::loop()
 {
+    if(http_client_ != NULL) {
+        std::cout << "JEPPP" << std::endl;
+    }
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 }
 
-void RotatingTurntableThread::clips_start_rotating_turntable()
+void RotatingTurntableThread::clips_rotating_turntable_start()
 {
     std::cout << "STARTSTART" << std::endl;
 }
 
-void RotatingTurntableThread::clips_stop_rotating_turntable()
+void RotatingTurntableThread::clips_rotating_turntable_stop()
 {
     std::cout << "STOPSTOP" << std::endl;
+}
+
+
+bool RotatingTurntableThread::clips_rotating_turntable_is_connected() {
+    return http_client_ != NULL;
+}
+bool RotatingTurntableThread::clips_rotating_turntable_is_running() {
+    return false;
 }
 
 void RotatingTurntableThread::all_for_now() {}
 void RotatingTurntableThread::cache_exhausted() {}
 void RotatingTurntableThread::browse_failed(const char *name, const char *type, const char *domain) {}
 void RotatingTurntableThread::service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags ) {
-    std::cout << "ADDED" << std::endl;
-    char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
-    std::string url = "http://";
-    url.append(ip);
-    url.append(":");
-    url.append(std::to_string(port));
-    std::cout << url << std::endl;
-    std::cout << "Name: " << name << std::endl;
-    std::cout << "Type: " << type << std::endl;
-    std::cout << "Domain: " << domain << std::endl;
-    using namespace utility;                    // Common utilities like string conversions
-    using namespace web;                        // Common features like URIs.
-    using namespace web::http;                  // Common HTTP functionality
-    using namespace web::http::client;          // HTTP client features
-    using namespace concurrency::streams;       // Asynchronous streams
-    http_client *client = new http_client(url);
-    http_response response = client->request(methods::GET, "/devices/rtt").get();
-    std::cout << "YYYYYEEEEESSSSSSS" << std::endl;
-    std::cout << "Code: " << response.status_code() << std::endl;
-    std::string body = response.extract_string(true).get();
-    std::cout << "Content: " << body << std::endl;
-    std::cout << "YYYYYEEEEESSSSSSS2" << std::endl;
+    if(http_client_ == NULL) {
+        using namespace std;
+        using namespace web::http;
+        using namespace web::http::client;
+        char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
+        string url = "http://";
+        url.append(ip);
+        url.append(":");
+        url.append(std::to_string(port));
+        cout << "AVAHI ADDED" << endl;
+        cout << "Name: " << name << endl;
+        cout << "URL: " << url << endl;
+        shared_ptr<http_client> client(new http_client(url));
+        client->request(methods::GET, "/devices/rtt").then([=](http_response response) {
+            if(response.status_code() == status_codes::OK) {
+                server_name_ = name;
+                device_uri_ = "/devices/rtt";
+                http_client_ = client;
+            }
+        });
+    }
 }
 void RotatingTurntableThread::service_removed(const char *name, const char *type, const char *domain) {
-    std::cout << "REMOVED" << std::endl;
+    using namespace std;
+    cout << "AVAHI REMOVED" << endl;
+    cout << "Name: " << name << endl;
+    if(http_client_ != NULL) {
+        if(server_name_ == name) {
+            http_client_ = nullptr;
+        }
+    }
 }

@@ -87,6 +87,7 @@
   (signal (type inventory-client) (time (create$ 0 0)) (seq 1))
   (signal (type drilling-machine) (time (create$ 0 0)) (seq 1))
   (signal (type conveyor-belt) (time (create$ 0 0)) (seq 1))
+  (signal (type rotating-turntable) (time (create$ 0 0)) (seq 1))
   (signal (type triggered-conveyor-belt) (time (create$ 0 0)) (seq 1))
 
   (triggered-conveyor-belt)

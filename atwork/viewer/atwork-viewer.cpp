@@ -10,6 +10,7 @@
 #include <protobuf_comm/client.h>
 #include <msgs/BenchmarkState.pb.h>
 #include <msgs/ConveyorBelt.pb.h>
+#include <msgs/RotatingTurntable.pb.h>
 #include <msgs/RobotInfo.pb.h>
 #include <msgs/AttentionMessage.pb.h>
 #include <msgs/Inventory.pb.h>
@@ -29,6 +30,7 @@ std::vector<Gtk::Widget *> robot_widgets;
 boost::mutex mutex;
 std::shared_ptr<atwork_pb_msgs::BenchmarkState> benchmark_state;
 std::shared_ptr<atwork_pb_msgs::ConveyorBeltStatus> conveyor_belt_state;
+std::shared_ptr<atwork_pb_msgs::RotatingTurntableStatus> rotating_turntable_state;
 std::shared_ptr<atwork_pb_msgs::RobotInfo> robot_info;
 std::shared_ptr<atwork_pb_msgs::Inventory> inventory;
 std::shared_ptr<atwork_pb_msgs::TaskInfo> task_info;
@@ -102,6 +104,10 @@ void handle_message(uint16_t comp_id, uint16_t msg_type,
 
   if (std::dynamic_pointer_cast<atwork_pb_msgs::ConveyorBeltStatus>(msg)) {
     conveyor_belt_state = std::dynamic_pointer_cast<atwork_pb_msgs::ConveyorBeltStatus>(msg);
+  }
+
+  if (std::dynamic_pointer_cast<atwork_pb_msgs::RotatingTurntableStatus>(msg)) {
+    rotating_turntable_state = std::dynamic_pointer_cast<atwork_pb_msgs::RotatingTurntableStatus>(msg);
   }
 
   if (std::dynamic_pointer_cast<atwork_pb_msgs::RobotInfo>(msg)) {
@@ -260,6 +266,30 @@ bool timeout_handler() {
     }
   }
 
+    if (rotating_turntable_state) {
+        Gtk::Label *label_rotating_turntable_connected = 0;
+        builder->get_widget("label_rotating_turntable_connected", label_rotating_turntable_connected);
+        Gtk::Label *label_rotating_turntable_running = 0;
+        builder->get_widget("label_rotating_turntable_running", label_rotating_turntable_running);
+
+        switch (rotating_turntable_state->connection_state()) {
+            case atwork_pb_msgs::RotatingTurntableConnectionState::RTT_CONNECTED:
+                label_rotating_turntable_connected->set_text("Connected");
+                break;
+            case atwork_pb_msgs::RotatingTurntableConnectionState::RTT_NOT_CONNECTED:
+                label_rotating_turntable_connected->set_text("NOT CONNECTED");
+                break;
+        }
+        switch (rotating_turntable_state->state()) {
+            case atwork_pb_msgs::RotatingTurntableRunMode::RTT_RUNNING:
+                label_rotating_turntable_connected->set_text("Running");
+                break;
+            case atwork_pb_msgs::RotatingTurntableRunMode::RTT_STOPPED:
+                label_rotating_turntable_connected->set_text("Stopped");
+                break;
+        }
+    }
+
 
   if (robot_info) {
     Gtk::Box *box_robots = 0;
@@ -317,7 +347,7 @@ bool timeout_handler() {
     label_inventory->set_text(sstr.str());
   }
 
-  
+
   if (task_info) {
     Gtk::Label *label_orders = 0;
     builder->get_widget("label_orders", label_orders);
@@ -354,7 +384,7 @@ bool timeout_handler() {
 
     label_orders->set_text(sstr.str());
   }
-  
+
 
   std::stringstream sstr_attention_messages;
   Gtk::Label *label_attention_messages = 0;
@@ -383,6 +413,7 @@ int main(int argc, char **argv)
   protobuf_comm::MessageRegister &message_register = client.message_register();
   message_register.add_message_type<atwork_pb_msgs::BenchmarkState>();
   message_register.add_message_type<atwork_pb_msgs::ConveyorBeltStatus>();
+  message_register.add_message_type<atwork_pb_msgs::RotatingTurntableStatus>();
   message_register.add_message_type<atwork_pb_msgs::RobotInfo>();
   message_register.add_message_type<atwork_pb_msgs::AttentionMessage>();
   message_register.add_message_type<atwork_pb_msgs::Inventory>();

@@ -50,11 +50,15 @@ class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspe
 
     private:
         fawkes::AvahiThread *avahi_thread_;
-        std::string device_uri_;
-        std::string device_name_;
 
-        void clips_start_rotating_turntable();
-        void clips_stop_rotating_turntable();
+        std::shared_ptr<web::http::client::http_client> http_client_;
+        std::string server_name_;
+        std::string device_uri_;
+
+        void clips_rotating_turntable_start();
+        void clips_rotating_turntable_stop();
+        bool clips_rotating_turntable_is_connected();
+        bool clips_rotating_turntable_is_running();
     private:
 };
 

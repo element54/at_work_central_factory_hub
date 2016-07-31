@@ -235,7 +235,7 @@ void on_rtt_start_click()
   if (!client.connected()) return;
 
   atwork_pb_msgs::RotatingTurntableCommand msg;
-  msg.set_command(atwork_pb_msgs::RTT_START);
+  msg.set_command(atwork_pb_msgs::RTT_RUNNING);
   client.send(msg);
 }
 
@@ -245,7 +245,7 @@ void on_rtt_stop_click()
   if (!client.connected()) return;
 
   atwork_pb_msgs::RotatingTurntableCommand msg;
-  msg.set_command(atwork_pb_msgs::RTT_STOP);
+  msg.set_command(atwork_pb_msgs::RTT_STOPPED);
   client.send(msg);
 }
 

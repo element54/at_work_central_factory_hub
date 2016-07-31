@@ -31,21 +31,27 @@ package atwork_pb_msgs;
 option java_package = "org.atwork.common_msgs";
 option java_outer_classname = "RotatingTurntableProtos";
 
+enum RotatingTurntableConnectionState {
+  RTT_NOT_CONNECTED  = 0;
+  RTT_CONNECTED = 1;
+}
+
 enum RotatingTurntableRunMode {
-  RTT_STOP  = 0;  // The conveyor belt is standing still
-  RTT_START = 1;  // The conveyor belt is moving
+  RTT_RUNNING  = 0;  // The conveyor belt is standing still
+  RTT_STOPPED = 1;  // The conveyor belt is moving
 }
 
 // This message is only meant to be used by clients (i.e. not robots), e.g. to
 // visualize the conveyor belt status.
 message RotatingTurntableStatus {
   enum CompType {
-    COMP_ID  = 2001;
-    MSG_TYPE = 300;
+    COMP_ID  = 2000;
+    MSG_TYPE = 3100;
   }
 
   // The current motion state of the conveyor belt
   required RotatingTurntableRunMode state = 1;
+  required RotatingTurntableConnectionState connection_state = 2;
 }
 
 // This message is only meant to be used by clients (i.e. not robots), e.g. to
@@ -53,11 +59,10 @@ message RotatingTurntableStatus {
 // belt.
 message RotatingTurntableCommand {
   enum CompType {
-    COMP_ID  = 2001;
-    MSG_TYPE = 301;
+    COMP_ID  = 2000;
+    MSG_TYPE = 3110;
   }
 
   // The desired motion state of the conveyor belt
   required RotatingTurntableRunMode command = 1;
 }
-
