@@ -54,26 +54,37 @@ void RotatingTurntableThread::init()
     clips->add_function("rotating-turntable-is-running", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_running)));
     clips->add_function("rotating-turntable-is-connected", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_connected)));
 
-    http_client_ = nullptr;
+    client_ = new PropertyClient::Client(this, "rtt");
+    client_->start();
 
-    avahi_thread_ = new fawkes::AvahiThread();
-    avahi_thread_->watch_service("_property_server._tcp", this);
-    avahi_thread_->start();
-    //if (!clips->build("(deffacts have-feature-conveyor-belt (have-feature ConveyorBelt))"))
-    //    logger->log_warn("ConveyorBelt", "Failed to build deffacts have-feature-conveyor-belt");
+    if (!clips->build("(deffacts have-feature-rotating-turntable (have-feature RotatingTurntable))"))
+        logger->log_warn("ConveyorBelt", "Failed to build deffacts have-feature-rotating-turntable");
 }
 
 void RotatingTurntableThread::finalize()
 {
-    delete avahi_thread_;
+    delete client_;
 }
 
 void RotatingTurntableThread::loop()
 {
-    if(http_client_ != NULL) {
-        std::cout << "JEPPP" << std::endl;
-    }
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+}
+
+
+void RotatingTurntableThread::device_connected(const char* device_id) {
+    std::cout << "device_connected: " << device_id << std::endl;
+}
+
+void RotatingTurntableThread::device_disconnected(const char* device_id) {
+    std::cout << "device_disconnected: " << device_id << std::endl;
+}
+
+void RotatingTurntableThread::property_changed(const char* device_id, const char* property_id) {
+    std::cout << "property_changed: " << device_id << ", " << property_id << std::endl;
+}
+void RotatingTurntableThread::device_error(const char* device_id) {
+    std::cout << "device_error: " << device_id << std::endl;
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_start()
@@ -88,45 +99,8 @@ void RotatingTurntableThread::clips_rotating_turntable_stop()
 
 
 bool RotatingTurntableThread::clips_rotating_turntable_is_connected() {
-    return http_client_ != NULL;
+    return false;
 }
 bool RotatingTurntableThread::clips_rotating_turntable_is_running() {
     return false;
-}
-
-void RotatingTurntableThread::all_for_now() {}
-void RotatingTurntableThread::cache_exhausted() {}
-void RotatingTurntableThread::browse_failed(const char *name, const char *type, const char *domain) {}
-void RotatingTurntableThread::service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags ) {
-    if(http_client_ == NULL) {
-        using namespace std;
-        using namespace web::http;
-        using namespace web::http::client;
-        char *ip = inet_ntoa (((const struct sockaddr_in *)addr)->sin_addr);
-        string url = "http://";
-        url.append(ip);
-        url.append(":");
-        url.append(std::to_string(port));
-        cout << "AVAHI ADDED" << endl;
-        cout << "Name: " << name << endl;
-        cout << "URL: " << url << endl;
-        shared_ptr<http_client> client(new http_client(url));
-        client->request(methods::GET, "/devices/rtt").then([=](http_response response) {
-            if(response.status_code() == status_codes::OK) {
-                server_name_ = name;
-                device_uri_ = "/devices/rtt";
-                http_client_ = client;
-            }
-        });
-    }
-}
-void RotatingTurntableThread::service_removed(const char *name, const char *type, const char *domain) {
-    using namespace std;
-    cout << "AVAHI REMOVED" << endl;
-    cout << "Name: " << name << endl;
-    if(http_client_ != NULL) {
-        if(server_name_ == name) {
-            http_client_ = nullptr;
-        }
-    }
 }

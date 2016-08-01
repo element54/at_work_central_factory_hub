@@ -34,8 +34,8 @@
 )
 (defrule load-rotating-turntable
   (init)
+  (have-feature RotatingTurntable)
   =>
   (printout t "Enabling RTT" crlf)
   (load* (resolve-file device-rotating-turntable.clp))
 )
-

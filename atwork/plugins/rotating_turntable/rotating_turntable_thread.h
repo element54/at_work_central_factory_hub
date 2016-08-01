@@ -26,14 +26,13 @@
 #include <aspect/clips.h>
 #include <aspect/configurable.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <netcomm/dns-sd/avahi_thread.h>
-#include <netcomm/dns-sd/avahi_resolver_handler.h>
 #include <boost/thread/thread.hpp>
-#include <cpprest/http_client.h>
+#include <property_client/listener.h>
+#include <property_client/client.h>
 
 
 
-class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect, public fawkes::CLIPSAspect, public fawkes::ServiceBrowseHandler
+class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect, public fawkes::CLIPSAspect, public PropertyClient::Listener
 {
     public:
         RotatingTurntableThread();
@@ -42,18 +41,13 @@ class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspe
         virtual void loop();
         virtual void finalize();
 
-        virtual void all_for_now();
-        virtual void cache_exhausted();
-        virtual void browse_failed(const char *name, const char *type, const char *domain);
-        virtual void service_added(const char *name, const char *type, const char *domain, const char *host_name, const struct sockaddr *addr, const socklen_t addr_size, uint16_t port, std::list<std::string> &txt, int flags );
-        virtual void service_removed(const char *name, const char *type, const char *domain);
+        virtual void device_connected(const char* device_id);
+        virtual void device_disconnected(const char* device_id);
+        virtual void property_changed(const char* device_id, const char* property_id);
+        virtual void device_error(const char* device_id);
 
     private:
-        fawkes::AvahiThread *avahi_thread_;
-
-        std::shared_ptr<web::http::client::http_client> http_client_;
-        std::string server_name_;
-        std::string device_uri_;
+        PropertyClient::Client *client_;
 
         void clips_rotating_turntable_start();
         void clips_rotating_turntable_stop();

@@ -24,7 +24,7 @@ include $(BUILDCONFDIR)/netcomm/netcomm.mk
 REQ_BOOST_LIBS = thread system asio
 HAVE_BOOST_LIBS = $(call boost-have-libs,$(REQ_BOOST_LIBS))
 
-LIBS_rotating_turntable = llsfrbcore llsfrbaspects atwork_plugin_msgs llsfrbnetcomm crypto ssl cpprest
+LIBS_rotating_turntable = llsfrbcore llsfrbaspects atwork_plugin_msgs llsfrbnetcomm crypto ssl cpprest property_client
 OBJS_rotating_turntable = rotating_turntable_plugin.o rotating_turntable_thread.o
 
 ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_LIBZMQ)$(HAVE_BOOST_LIBS),1111)
