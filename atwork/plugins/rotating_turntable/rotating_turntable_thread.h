@@ -41,10 +41,10 @@ class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspe
         virtual void loop();
         virtual void finalize();
 
-        virtual void device_connected(const char* device_id);
-        virtual void device_disconnected(const char* device_id);
-        virtual void property_changed(const char* device_id, const char* property_id);
-        virtual void device_error(const char* device_id);
+        virtual void device_connected(const std::string &device_id);
+        virtual void device_error(const std::string &device_id);
+        virtual void device_disconnected(const std::string &device_id);
+        virtual void property_changed(const std::string &device_id, std::shared_ptr<PropertyClient::Property> property);
 
     private:
         PropertyClient::Client *client_;

@@ -44,7 +44,7 @@ namespace PropertyClient {
  */
 
 /** Constructor. */
-Client::Client(Listener *listener, const char *device_id) :
+Client::Client(Listener *listener, std::string device_id) :
     Thread("PropertyClientThread", fawkes::Thread::OPMODE_CONTINUOUS), listener_(listener), device_id_(device_id),
     mutex_(fawkes::Mutex::Type::NORMAL)
 {
@@ -90,89 +90,85 @@ void Client::process_response( web::http::http_response &response ) {
     if(!properties_value.is_array())
         return;
     json::array properties = properties_value.as_array();
-    std::vector<std::string> changed;
+    std::vector<std::shared_ptr<Property>> changed;
     for(auto it = properties.begin(); it != properties.end();it++) {
         json::value property_value = *it;
         if(!property_value.is_object())
             continue;
         json::object property = property_value.as_object();
-        if(process_property(property)) {
-            changed.push_back(property["id"].as_string());
-        }
+        process_property(property, changed);
     }
-    for(auto it = changed.begin(); it != changed.end();it++) {
-        std::string property_id = *it;
-        listener_->property_changed(device_id_, property_id.c_str());
-    }
+    for(auto it = changed.begin(); it != changed.end();it++)
+        listener_->property_changed(device_id_, *it);
 }
 
-bool Client::process_property( web::json::object &property ) {
+void Client::process_property( web::json::object &property, std::vector<std::shared_ptr<Property>> &changed ) {
     using namespace web;
     std::string id = property["id"].as_string();
     auto it = properties_.find(id);
-    struct Property *p;
     if(it == properties_.end()) {
-        p = new struct Property;
-        properties_[id] = p;
+        std::shared_ptr<Property> p;
+        std::string name = property["name"].as_string();
+        std::string description = property["description"].as_string();
+        bool readonly = property["readonly"].as_bool();
         std::string type = property["type"].as_string();
         if(type == "bool") {
-            p->type_ = ValueType::bool_;
+            bool value = property["value"].as_bool();
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value);
         } else if(type == "long") {
-            p->type_ = ValueType::long_;
+            long value = property["value"].as_number().to_int64();
+            long min = property["min"].as_number().to_int64();
+            long max = property["max"].as_number().to_int64();
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
         } else if(type == "ulong") {
-            p->type_ = ValueType::ulong_;
+            unsigned long value = property["value"].as_number().to_uint64();
+            unsigned long min = property["min"].as_number().to_uint64();
+            unsigned long max = property["max"].as_number().to_uint64();
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
         } else if(type == "string") {
-            p->type_ = ValueType::string_;
+            std::string value = property["value"].as_string();
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value);
         } else if(type == "double") {
-            p->type_ = ValueType::double_;
+            double value = property["value"].as_number().to_double();
+            double min = property["min"].as_number().to_double();
+            double max = property["max"].as_number().to_double();
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
         } else {
-            p->type_ = ValueType::unknown_;
+            p = std::make_shared<Property>(this, id, name, description, readonly, 0);
         }
-        p->timestamp_ = 0;
-    } else {
-        p = properties_[id];
+        properties_[id] = p;
     }
+    std::shared_ptr<Property> p = properties_[id];
     unsigned long old_timestamp = p->timestamp_;
     unsigned long new_timestamp = property["timestamp"].as_number().to_uint64();
-    /*std::cout << "ID: " << id << std::endl;
-    std::cout << "OLD: " << old_timestamp << std::endl;
-    std::cout << "NEW: " << new_timestamp << std::endl;
-    std::cout << std::endl;*/
+    //std::cout << "ID: " << id << std::endl;
+    //std::cout << "OLD: " << old_timestamp << std::endl;
+    //std::cout << "NEW: " << new_timestamp << std::endl;
+    //std::cout << std::endl;
     p->timestamp_ = new_timestamp;
     if(old_timestamp != new_timestamp) {
         json::value value = property["value"];
         json::value min = property["min"];
         json::value max = property["max"];
-        switch (p->type_) {
-            case ValueType::bool_:
-                p->value_.bool_ = value.as_bool();
-                break;
-            case ValueType::long_:
-                p->value_.long_ = value.as_number().to_int64();
-                p->min_.long_ = min.as_number().to_int64();
-                p->max_.long_ = max.as_number().to_int64();
-                break;
-            case ValueType::ulong_:
-                p->value_.ulong_ = value.as_number().to_uint64();
-                p->min_.ulong_ = min.as_number().to_uint64();
-                p->max_.ulong_ = max.as_number().to_uint64();
-                break;
-            case ValueType::double_:
-                p->value_.double_ = value.as_double();
-                p->min_.double_ = min.as_double();
-                p->max_.double_ = max.as_double();
-                break;
-            case ValueType::string_:
-                p->value_.string_ = value.as_string().c_str();
-                break;
-            default:
-                break;
+        if(p->is_value_long()) {
+            p->value_.long_ = value.as_number().to_int64();
+            p->min_value_.long_ = min.as_number().to_int64();
+            p->max_value_.long_ = max.as_number().to_int64();
+        } else if(p->is_value_ulong()) {
+            p->value_.ulong_ = value.as_number().to_uint64();
+            p->min_value_.ulong_ = min.as_number().to_uint64();
+            p->max_value_.ulong_ = max.as_number().to_uint64();
+        } else if(p->is_value_double()) {
+            p->value_.double_ = value.as_number().to_double();
+            p->min_value_.double_ = min.as_number().to_double();
+            p->max_value_.double_ = max.as_number().to_double();
+        } else if(p->is_value_bool()) {
+            p->value_.bool_ = value.as_bool();
+        } else if(p->is_value_string()) {
+            p->value_.string_ = value.as_string().c_str();
         }
-        return true;
-    } else {
-        return false;
+        changed.push_back(p);
     }
-
 }
 
 void Client::all_for_now() {}
@@ -191,9 +187,9 @@ void Client::service_added(const char *name, const char *type, const char *domai
     base_url.append(ip);
     base_url.append(":");
     base_url.append(std::to_string(port));
-    /*cout << "AVAHI ADDED" << endl;
-    cout << "Name: " << name << endl;
-    cout << "Base URL: " << base_url << endl;*/
+    //cout << "AVAHI ADDED" << endl;
+    //cout << "Name: " << name << endl;
+    //cout << "Base URL: " << base_url << endl;
     string url = "/devices/";
     url.append(device_id_);
     http_client *client = new http_client(base_url);
@@ -213,21 +209,6 @@ void Client::service_added(const char *name, const char *type, const char *domai
             delete client;
         }
     }
-    //client->request(methods::GET, url).then(std::bind(&Client::poll_callback, this, url, std::placeholders::_1));
-    /*response.extract_json().then([=](json::value value) {
-        if(!value.is_array())
-            return;
-        json::array list = value.as_array();
-        for(auto list_it = list.begin(); list_it != list.end();list_it++) {
-            json::value device = *list_it;
-            std::string id = device.at("id").as_string();
-            auto test = std::find(watchlist_.begin(), watchlist_.end(), id);
-            if(test != watchlist_.end()) {
-                clients_avahi_id_[name] = client;
-                clients_device_id_[id] = client;
-            }
-        }
-    });*/
 }
 void Client::service_removed(const char *name, const char *type, const char *domain) {
     using namespace std;
@@ -236,14 +217,12 @@ void Client::service_removed(const char *name, const char *type, const char *dom
     fawkes::MutexLocker lock(&mutex_);
     if(!is_connected())
         return;
-    if(strcmp(server_name_, name) != 0)
+    if(server_name_ != name)
+    //if(strcmp(server_name_, name) != 0)
         return;
     delete http_client_;
     http_client_ = NULL;
 
-    for(auto it = properties_.begin(); it != properties_.end();it++) {
-        delete it->second;
-    }
     properties_.clear();
     listener_->device_disconnected(device_id_);
 }

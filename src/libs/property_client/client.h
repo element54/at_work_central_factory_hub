@@ -31,13 +31,16 @@
 #include <vector>
 #include <unordered_map>
 #include "listener.h"
+#include "property.h"
 
 namespace PropertyClient {
-
+class Property;
+class Listener;
 class Client: public fawkes::Thread, public fawkes::ServiceBrowseHandler
 {
+    friend class Property;
     public:
-        Client(Listener *listener, const char *device_id);
+        Client(Listener *listener, std::string device_id);
         ~Client();
 
         virtual void loop();
@@ -49,40 +52,22 @@ class Client: public fawkes::Thread, public fawkes::ServiceBrowseHandler
         virtual void service_removed(const char *name, const char *type, const char *domain);
 
         bool is_connected( void );
-        void process_response( web::http::http_response &response );
-        bool process_property( web::json::object &property );
+
+        bool exists_property( const std::string &id );
+
 
     private:
-        enum ValueType {
-            bool_,
-            string_,
-            long_,
-            ulong_,
-            double_,
-            unknown_
-        };
-        union ValueHolder {
-            long long_;
-            double double_;
-            bool bool_;
-            unsigned long ulong_;
-            const char *string_;
-        };
-        struct Property {
-            union ValueHolder value_;
-            union ValueHolder min_;
-            union ValueHolder max_;
-            ValueType type_;
-            unsigned long timestamp_;
-        };
-
         Listener *listener_;
-        const char *device_id_;
+        const std::string device_id_;
         fawkes::Mutex mutex_;
         fawkes::AvahiThread *avahi_thread_;
 
-        const char *server_name_;
+        std::string server_name_;
         web::http::client::http_client *http_client_;
-        std::unordered_map<std::string, struct Property *> properties_;
+        std::unordered_map<std::string, std::shared_ptr<Property>> properties_;
+
+
+        void process_response( web::http::http_response &response );
+        void process_property( web::json::object &property, std::vector<std::shared_ptr<Property>> &changed );
 };
 }

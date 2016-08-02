@@ -72,18 +72,18 @@ void RotatingTurntableThread::loop()
 }
 
 
-void RotatingTurntableThread::device_connected(const char* device_id) {
+void RotatingTurntableThread::device_connected(const std::string &device_id) {
     std::cout << "device_connected: " << device_id << std::endl;
 }
 
-void RotatingTurntableThread::device_disconnected(const char* device_id) {
+void RotatingTurntableThread::device_disconnected(const std::string &device_id) {
     std::cout << "device_disconnected: " << device_id << std::endl;
 }
 
-void RotatingTurntableThread::property_changed(const char* device_id, const char* property_id) {
-    std::cout << "property_changed: " << device_id << ", " << property_id << std::endl;
+void RotatingTurntableThread::property_changed(const std::string &device_id, std::shared_ptr<PropertyClient::Property> property) {
+    std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
 }
-void RotatingTurntableThread::device_error(const char* device_id) {
+void RotatingTurntableThread::device_error(const std::string &device_id) {
     std::cout << "device_error: " << device_id << std::endl;
 }
 
