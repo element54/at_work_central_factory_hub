@@ -68,6 +68,11 @@ void RotatingTurntableThread::finalize()
 
 void RotatingTurntableThread::loop()
 {
+    /*if(client_->is_connected()) {
+        std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
+        std::cout << property->get_id() << std::endl;
+        std::cout << property->set_long(100) << std::endl;
+    }*/
     boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 }
 

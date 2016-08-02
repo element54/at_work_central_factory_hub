@@ -30,12 +30,12 @@ class Client;
 class Property {
     friend class Client;
     public:
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, long value, long min, long max);
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, unsigned long value, unsigned long min, unsigned long max);
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, double value, double min, double max);
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, bool value);
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, const string &value);
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, long value, long min, long max);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, unsigned long value, unsigned long min, unsigned long max);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, double value, double min, double max);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, bool value);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, const string &value);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp);
         const string get_id( void );
         const string get_name( void );
         const string get_description( void );
@@ -75,7 +75,7 @@ class Property {
         unsigned long min_ulong( void );
         unsigned long max_ulong( void );
         double min_double( void );
-        double nax_double( void );
+        double max_double( void );
 
         bool set_long (long value);
         bool set_ulong (unsigned long value);
@@ -114,7 +114,8 @@ class Property {
             unsigned long ulong_;
             const char *string_;
         };
-        const Client *client_;
+        Client *client_;
+        const string uri_;
         const string id_;
         const string name_;
         const string description_;
@@ -125,6 +126,6 @@ class Property {
         union ValueHolder min_value_;
         union ValueHolder max_value_;
 
-        Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, const ValueType  type);
+        Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, const ValueType  type);
 };
 }

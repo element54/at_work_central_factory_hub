@@ -54,6 +54,7 @@ class Client: public fawkes::Thread, public fawkes::ServiceBrowseHandler
         bool is_connected( void );
 
         bool exists_property( const std::string &id );
+        std::shared_ptr<Property> get_property( const std::string &id );
 
 
     private:
@@ -67,7 +68,10 @@ class Client: public fawkes::Thread, public fawkes::ServiceBrowseHandler
         std::unordered_map<std::string, std::shared_ptr<Property>> properties_;
 
 
-        void process_response( web::http::http_response &response );
+        void process_property_list( web::json::value &value );
         void process_property( web::json::object &property, std::vector<std::shared_ptr<Property>> &changed );
+        std::shared_ptr<Property> create_property( web::json::object &property );
+
+        bool update_property( Property *property );
 };
 }

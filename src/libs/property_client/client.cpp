@@ -69,8 +69,9 @@ void Client::loop() {
             url.append(device_id_);
             try {
                 auto response = http_client_->request(web::http::methods::GET, url).get();
-                process_response(response);
-            } catch(std::exception const & ex) {
+                web::json::value value = response.extract_json().get();
+                process_property_list(value);
+            } catch(web::http::http_exception const & ex) {
                 //TODO what?
 
             }
@@ -80,9 +81,8 @@ void Client::loop() {
 }
 
 
-void Client::process_response( web::http::http_response &response ) {
+void Client::process_property_list( web::json::value &value ) {
     using namespace web;
-    json::value value = response.extract_json().get();
     if(!value.is_object())
         return;
     json::object device = value.as_object();
@@ -106,38 +106,8 @@ void Client::process_property( web::json::object &property, std::vector<std::sha
     using namespace web;
     std::string id = property["id"].as_string();
     auto it = properties_.find(id);
-    if(it == properties_.end()) {
-        std::shared_ptr<Property> p;
-        std::string name = property["name"].as_string();
-        std::string description = property["description"].as_string();
-        bool readonly = property["readonly"].as_bool();
-        std::string type = property["type"].as_string();
-        if(type == "bool") {
-            bool value = property["value"].as_bool();
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value);
-        } else if(type == "long") {
-            long value = property["value"].as_number().to_int64();
-            long min = property["min"].as_number().to_int64();
-            long max = property["max"].as_number().to_int64();
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
-        } else if(type == "ulong") {
-            unsigned long value = property["value"].as_number().to_uint64();
-            unsigned long min = property["min"].as_number().to_uint64();
-            unsigned long max = property["max"].as_number().to_uint64();
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
-        } else if(type == "string") {
-            std::string value = property["value"].as_string();
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value);
-        } else if(type == "double") {
-            double value = property["value"].as_number().to_double();
-            double min = property["min"].as_number().to_double();
-            double max = property["max"].as_number().to_double();
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0, value, min, max);
-        } else {
-            p = std::make_shared<Property>(this, id, name, description, readonly, 0);
-        }
-        properties_[id] = p;
-    }
+    if(it == properties_.end())
+        properties_[id] = create_property(property);
     std::shared_ptr<Property> p = properties_[id];
     unsigned long old_timestamp = p->timestamp_;
     unsigned long new_timestamp = property["timestamp"].as_number().to_uint64();
@@ -168,6 +138,67 @@ void Client::process_property( web::json::object &property, std::vector<std::sha
             p->value_.string_ = value.as_string().c_str();
         }
         changed.push_back(p);
+    }
+}
+
+std::shared_ptr<Property> Client::create_property( web::json::object &property ) {
+    std::shared_ptr<Property> p;
+    std::string id = property["id"].as_string();
+    std::string name = property["name"].as_string();
+    std::string uri = property["uri"].as_string();
+    std::string description = property["description"].as_string();
+    bool readonly = property["readonly"].as_bool();
+    std::string type = property["type"].as_string();
+    if(type == "bool") {
+        bool value = property["value"].as_bool();
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0, value);
+    } else if(type == "long") {
+        long value = property["value"].as_number().to_int64();
+        long min = property["min"].as_number().to_int64();
+        long max = property["max"].as_number().to_int64();
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0, value, min, max);
+    } else if(type == "ulong") {
+        unsigned long value = property["value"].as_number().to_uint64();
+        unsigned long min = property["min"].as_number().to_uint64();
+        unsigned long max = property["max"].as_number().to_uint64();
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0, value, min, max);
+    } else if(type == "string") {
+        std::string value = property["value"].as_string();
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0, value);
+    } else if(type == "double") {
+        double value = property["value"].as_number().to_double();
+        double min = property["min"].as_number().to_double();
+        double max = property["max"].as_number().to_double();
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0, value, min, max);
+    } else {
+        p = std::make_shared<Property>(this, uri, id, name, description, readonly, 0);
+    }
+    return p;
+}
+
+bool Client::update_property( Property *property ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    json::value object = json::value::object();
+    if(property->is_value_long()) {
+        object["value"] = json::value::number(property->as_long());
+    } else if(property->is_value_ulong()) {
+        object["value"] = json::value::number(property->as_ulong());
+    } else if(property->is_value_double()) {
+        object["value"] = json::value::number(property->as_double());
+    } else if(property->is_value_bool()) {
+        object["value"] = json::value::boolean(property->as_bool());
+    } else if(property->is_value_string()) {
+        object["value"] = json::value::string(property->as_string());
+    }
+    try {
+        auto response = http_client_->request(web::http::methods::PUT, property->uri_, object).get();
+        return response.status_code() == web::http::status_codes::OK;
+    } catch(web::http::http_exception const & ex) {
+        return false;
+        //TODO what?
     }
 }
 
@@ -202,9 +233,11 @@ void Client::service_added(const char *name, const char *type, const char *domai
         } else {
             server_name_ = name;
             http_client_ = client;
+            web::json::value value = response.extract_json().get();
+            process_property_list(value);
             listener_->device_connected(device_id_);
         }
-    } catch(std::exception const & ex) {
+    } catch(web::http::http_exception const & ex) {
         if(client != NULL) {
             delete client;
         }
@@ -229,5 +262,13 @@ void Client::service_removed(const char *name, const char *type, const char *dom
 bool Client::is_connected( void ) {
     //fawkes::MutexLocker lock(&mutex_);
     return http_client_ != NULL;
+}
+bool Client::exists_property( const std::string &id ) {
+    fawkes::MutexLocker lock(&mutex_);
+    return properties_.find(id) != properties_.end();
+}
+std::shared_ptr<Property> Client::get_property( const std::string &id ) {
+    fawkes::MutexLocker lock(&mutex_);
+    return properties_[id];
 }
 }

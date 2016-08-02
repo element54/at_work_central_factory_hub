@@ -2,37 +2,37 @@
 namespace PropertyClient {
 using namespace std;
 
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, const ValueType type)
-    : client_(client), id_(id), name_(name), description_(description), readonly_(readonly), timestamp_(timestamp), type_(type) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, const ValueType type)
+    : client_(client), uri_(uri), id_(id), name_(name), description_(description), readonly_(readonly), timestamp_(timestamp), type_(type) {
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, long value, long min, long max)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::long_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, long value, long min, long max)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::long_) {
     value_.long_ = value;
     min_value_.long_ = min;
     max_value_.long_ = max;
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, unsigned long value, unsigned long min, unsigned long max)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::ulong_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, unsigned long value, unsigned long min, unsigned long max)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::ulong_) {
     value_.ulong_ = value;
     min_value_.ulong_ = min;
     max_value_.ulong_ = max;
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, double value, double min, double max)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::double_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, double value, double min, double max)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::double_) {
     value_.double_ = value;
     min_value_.double_ = min;
     max_value_.double_ = max;
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, bool value)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::bool_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, bool value)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::bool_) {
     value_.bool_ = value;
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp, const string &value)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::string_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp, const string &value)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::string_) {
     value_.string_ = value.c_str();
 }
-Property::Property(Client *client, const string id, const string name, const string description, const bool readonly, long timestamp)
-    : Property(client, id, name, description, readonly, timestamp, ValueType::unknown_) {
+Property::Property(Client *client, const string uri, const string id, const string name, const string description, const bool readonly, long timestamp)
+    : Property(client, uri, id, name, description, readonly, timestamp, ValueType::unknown_) {
 };
 const string Property::get_id( void ) {
     return id_;
@@ -114,9 +114,39 @@ double Property::min_double( void ) {
         return 0.0;
     return min_value_.double_;
 }
-double Property::nax_double( void ) {
+double Property::max_double( void ) {
     if(!is_value_double())
         return 0.0;
     return max_value_.double_;
+}
+bool Property::set_long(long value) {
+    if(!is_value_long())
+        return false;
+    value_.long_ = value;
+    return client_->update_property(this);
+}
+bool Property::set_ulong (unsigned long value) {
+    if(!is_value_ulong())
+        return false;
+    value_.ulong_ = value;
+    return client_->update_property(this);
+}
+bool Property::set_bool (bool value) {
+    if(!is_value_bool())
+        return false;
+    value_.bool_ = value;
+    return client_->update_property(this);
+}
+bool Property::set_double (double value) {
+    if(!is_value_double())
+        return false;
+    value_.double_ = value;
+    return client_->update_property(this);
+}
+bool Property::set_string (const string &value) {
+    if(!is_value_string())
+        return false;
+    value_.string_ = value.c_str();
+    return client_->update_property(this);
 }
 }
