@@ -21,6 +21,7 @@
  */
 #include "listener.h"
 #include "client.h"
+#include <string>
 #include <memory>
 
 namespace PropertyClient {

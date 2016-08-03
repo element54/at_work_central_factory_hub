@@ -20,21 +20,12 @@
 
 #include "client.h"
 
-#include <core/threading/mutex.h>
-#include <core/threading/mutex_locker.h>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread/thread.hpp>
-
-
-#include <netcomm/dns-sd/avahi_thread.h>
-#include <netcomm/dns-sd/avahi_resolver_handler.h>
-
-
+#include <chrono>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <algorithm>
-#include <cpprest/json.h>
 
+#include <core/threading/mutex.h>
+#include <core/threading/mutex_locker.h>
 
 namespace PropertyClient {
 
@@ -61,21 +52,80 @@ Client::~Client() {
 void Client::loop() {
     {
         fawkes::MutexLocker lock( &mutex_ );
-        //std::cout << "YES " << is_connected() << std::endl;
         if( is_connected() ) {
-            std::string url = "/devices/";
-            url.append( device_id_ );
-            try {
-                auto response = http_client_->request( web::http::methods::GET, url ).get();
-                web::json::value value = response.extract_json().get();
-                process_property_list( value );
-            } catch ( web::http::http_exception const & ex ) {
-                //TODO what?
-
-            }
+            //std::cout << "poll" << std::endl;
+            poll_properties();
+        } else {
+            //std::cout << "search" << std::endl;
+            search_server();
         }
     }
     boost::this_thread::sleep( boost::posix_time::milliseconds( 250 ) );
+}
+
+void Client::poll_properties(void) {
+    std::string url = "/devices/";
+    url.append( device_id_ );
+    try {
+        auto response = http_client_->request( web::http::methods::GET, url ).get();
+        web::json::value value = response.extract_json().get();
+        process_property_list( value );
+    } catch ( web::http::http_exception const & ex ) {
+        delete http_client_;
+        http_client_ = NULL;
+        properties_.clear();
+        listener_->device_error( device_id_ );
+        listener_->device_disconnected( device_id_ );
+    }
+}
+
+void Client::search_server() {
+    using namespace std;
+    using namespace web;
+    for( auto it = servers_.begin(); it != servers_.end(); it++ ) {
+        string name = it->first;
+        string url = it->second;
+        //std::cout << "    test:" << name << " " << url << std::endl;
+        if(test_server(name, url)) {
+            break;
+        }
+    }
+
+}
+
+bool Client::test_server(const std::string &name, const std::string &base_url) {
+    using namespace std;
+    using namespace web;
+    using namespace web::http;
+    using namespace web::http::client;
+
+    string url = "/devices/";
+    url.append( device_id_ );
+    http_client_config client_config;
+    client_config.set_timeout(std::chrono::milliseconds(1000));
+    http_client *client = new http_client( base_url, client_config );
+    try {
+        auto response = client->request( methods::GET, url ).get();
+        if( response.status_code() != status_codes::OK ) {
+            //cout << "    Hat nicht geklappt" << endl;
+            delete client;
+            return false;
+        } else {
+            //cout << "    Juhu" << endl;
+            json::value value = response.extract_json().get();
+            server_name_ = name;
+            http_client_ = client;
+            process_property_list( value );
+            listener_->device_connected( device_id_ );
+            return true;
+        }
+    } catch ( http_exception const & ex ) {
+        //cout << "    Fehler" << endl;
+        if( client != NULL ) {
+            delete client;
+        }
+        return false;
+    }
 }
 
 
@@ -256,9 +306,6 @@ void Client::service_added( const char *name,
                             std::list<std::string> &txt,
                             int flags ) {
     fawkes::MutexLocker lock( &mutex_ );
-
-    if( is_connected() )
-        return;
     using namespace std;
     using namespace web;
     using namespace web::http;
@@ -268,10 +315,11 @@ void Client::service_added( const char *name,
     base_url.append( ip );
     base_url.append( ":" );
     base_url.append( std::to_string( port ) );
+    servers_[name] = base_url;
     //cout << "AVAHI ADDED" << endl;
     //cout << "Name: " << name << endl;
     //cout << "Base URL: " << base_url << endl;
-    string url = "/devices/";
+    /*string url = "/devices/";
     url.append( device_id_ );
     http_client *client = new http_client( base_url );
     try {
@@ -291,13 +339,14 @@ void Client::service_added( const char *name,
         if( client != NULL ) {
             delete client;
         }
-    }
+    }*/
 }
 void Client::service_removed( const char *name, const char *type, const char *domain ) {
     using namespace std;
     //cout << "AVAHI REMOVED" << endl;
     //cout << "Name: " << name << endl;
     fawkes::MutexLocker lock( &mutex_ );
+    servers_.erase(name);
     if( !is_connected() )
         return;
     if( server_name_ != name )

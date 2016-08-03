@@ -20,16 +20,17 @@
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
 
+#include <string>
+#include <unordered_map>
+#include <boost/thread/thread.hpp>
+
 #include <core/threading/thread.h>
-#include <aspect/logging.h>
-#include <aspect/configurable.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <netcomm/dns-sd/avahi_thread.h>
 #include <netcomm/dns-sd/avahi_resolver_handler.h>
-#include <boost/thread/thread.hpp>
+
+#include <cpprest/json.h>
 #include <cpprest/http_client.h>
-#include <vector>
-#include <unordered_map>
+
 #include "listener.h"
 #include "property.h"
 
@@ -74,6 +75,7 @@ private:
     std::string server_name_;
     web::http::client::http_client *http_client_;
     std::unordered_map<std::string, std::shared_ptr<Property> > properties_;
+    std::unordered_map<std::string, std::string> servers_;
 
 
     void process_property_list( web::json::value &value );
@@ -87,5 +89,9 @@ private:
     bool update_property( Property *property, const std::string &value );
 
     bool send_property_update( Property *property, web::json::value &object );
+
+    void poll_properties(void);
+    void search_server(void);
+    bool test_server(const std::string &name, const std::string &url);
 };
 }
