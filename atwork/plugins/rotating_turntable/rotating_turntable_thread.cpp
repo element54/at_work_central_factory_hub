@@ -91,7 +91,7 @@ void RotatingTurntableThread::device_disconnected( const std::string &device_id 
 void RotatingTurntableThread::property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property ) {
     //std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
     if( property->get_id() == "current_speed" ) {
-        running_ = (property->as_long() != 0l);
+        running_ = (property->as_double() != 0.0);
     }
 }
 void RotatingTurntableThread::device_error( const std::string &device_id ) {
@@ -104,7 +104,7 @@ void RotatingTurntableThread::clips_rotating_turntable_start() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_long( 100 );
+    property->set_double( 360.0 );
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_stop() {
@@ -113,7 +113,7 @@ void RotatingTurntableThread::clips_rotating_turntable_stop() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_long( 0 );
+    property->set_double( 0.0 );
 }
 
 
