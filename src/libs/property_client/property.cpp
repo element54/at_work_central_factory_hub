@@ -49,104 +49,99 @@ unsigned long Property::get_timestamp( void ) {
 bool Property::is_readonly( void ) {
     return readonly_;
 }
-bool Property::is_value_long( void ) {
+bool Property::is_long( void ) {
     return type_ == ValueType::long_;
 }
-bool Property::is_value_ulong( void ) {
+bool Property::is_ulong( void ) {
     return type_ == ValueType::ulong_;
 }
-bool Property::is_value_double( void ) {
+bool Property::is_double( void ) {
     return type_ == ValueType::double_;
 }
-bool Property::is_value_bool( void ) {
+bool Property::is_bool( void ) {
     return type_ == ValueType::bool_;
 }
-bool Property::is_value_string( void ) {
+bool Property::is_string( void ) {
     return type_ == ValueType::string_;
 }
 long Property::as_long( void ) {
-    if(!is_value_long())
+    if(!is_long())
         return 0;
     return value_.long_;
 }
 unsigned long Property::as_ulong( void ) {
-    if(!is_value_ulong())
+    if(!is_ulong())
         return 0;
     return value_.ulong_;
 }
 bool Property::as_bool( void ) {
-    if(!is_value_bool())
+    if(!is_bool())
         return false;
     return value_.bool_;
 }
 double Property::as_double( void ) {
-    if(!is_value_double())
+    if(!is_double())
         return 0.0;
     return value_.double_;
 }
 const string Property::as_string( void ) {
-    if(!is_value_string())
+    if(!is_string())
         return "";
     return value_.string_;
 }
 long Property::min_long( void ) {
-    if(!is_value_long())
+    if(!is_long())
         return 0;
     return min_value_.long_;
 }
 long Property::max_long( void ) {
-    if(!is_value_long())
+    if(!is_long())
         return 0;
     return max_value_.long_;
 }
 unsigned long Property::min_ulong( void ) {
-    if(!is_value_ulong())
+    if(!is_ulong())
         return 0;
     return min_value_.ulong_;
 }
 unsigned long Property::max_ulong( void ) {
-    if(!is_value_ulong())
+    if(!is_ulong())
         return 0;
     return max_value_.ulong_;
 }
 double Property::min_double( void ) {
-    if(!is_value_double())
+    if(!is_double())
         return 0.0;
     return min_value_.double_;
 }
 double Property::max_double( void ) {
-    if(!is_value_double())
+    if(!is_double())
         return 0.0;
     return max_value_.double_;
 }
 bool Property::set_long(long value) {
-    if(!is_value_long())
+    if(!is_long())
         return false;
-    value_.long_ = value;
-    return client_->update_property(this);
+    return client_->update_property(this, value);
 }
 bool Property::set_ulong (unsigned long value) {
-    if(!is_value_ulong())
+    if(!is_ulong())
         return false;
-    value_.ulong_ = value;
-    return client_->update_property(this);
+    return client_->update_property(this, value);
 }
 bool Property::set_bool (bool value) {
-    if(!is_value_bool())
+    if(!is_bool())
         return false;
-    value_.bool_ = value;
-    return client_->update_property(this);
+    return client_->update_property(this, value);
 }
 bool Property::set_double (double value) {
-    if(!is_value_double())
+    if(!is_double())
         return false;
-    value_.double_ = value;
-    return client_->update_property(this);
+    return client_->update_property(this, value);
 }
-bool Property::set_string (const string &value) {
-    if(!is_value_string())
+bool Property::set_string (const std::string &value) {
+    if(!is_string())
         return false;
-    value_.string_ = value.c_str();
-    return client_->update_property(this);
+    return client_->update_property(this, value);
 }
 }

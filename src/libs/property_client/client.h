@@ -72,6 +72,12 @@ class Client: public fawkes::Thread, public fawkes::ServiceBrowseHandler
         void process_property( web::json::object &property, std::vector<std::shared_ptr<Property>> &changed );
         std::shared_ptr<Property> create_property( web::json::object &property );
 
-        bool update_property( Property *property );
+        bool update_property( Property *property, long value );
+        bool update_property( Property *property, unsigned long value );
+        bool update_property( Property *property, double value );
+        bool update_property( Property *property, bool value );
+        bool update_property( Property *property, const std::string &value );
+
+        bool send_property_update( Property *property, web::json::value &object );
 };
 }

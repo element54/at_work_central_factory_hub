@@ -78,15 +78,21 @@ void RotatingTurntableThread::loop()
 
 
 void RotatingTurntableThread::device_connected(const std::string &device_id) {
-    std::cout << "device_connected: " << device_id << std::endl;
+    //std::cout << "device_connected: " << device_id << std::endl;
+    connected_ = true;
 }
 
 void RotatingTurntableThread::device_disconnected(const std::string &device_id) {
-    std::cout << "device_disconnected: " << device_id << std::endl;
+    //std::cout << "device_disconnected: " << device_id << std::endl;
+    connected_ = false;
+    running_ = false;
 }
 
 void RotatingTurntableThread::property_changed(const std::string &device_id, std::shared_ptr<PropertyClient::Property> property) {
-    std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
+    //std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
+    if(property->get_id() == "current_speed") {
+        running_ = (property->as_long() != 0l);
+    }
 }
 void RotatingTurntableThread::device_error(const std::string &device_id) {
     std::cout << "device_error: " << device_id << std::endl;
@@ -94,18 +100,28 @@ void RotatingTurntableThread::device_error(const std::string &device_id) {
 
 void RotatingTurntableThread::clips_rotating_turntable_start()
 {
-    std::cout << "STARTSTART" << std::endl;
+    if(!client_->is_connected())
+        return;
+    std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
+    if(property == NULL)
+        return;
+    property->set_long(100);
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_stop()
 {
-    std::cout << "STOPSTOP" << std::endl;
+    if(!client_->is_connected())
+        return;
+    std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
+    if(property == NULL)
+        return;
+    property->set_long(0);
 }
 
 
 bool RotatingTurntableThread::clips_rotating_turntable_is_connected() {
-    return false;
+    return connected_;
 }
 bool RotatingTurntableThread::clips_rotating_turntable_is_running() {
-    return false;
+    return running_;
 }

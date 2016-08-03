@@ -48,6 +48,8 @@ class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspe
 
     private:
         PropertyClient::Client *client_;
+        bool connected_ = false;
+        bool running_ = false;
 
         void clips_rotating_turntable_start();
         void clips_rotating_turntable_stop();

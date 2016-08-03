@@ -42,11 +42,11 @@ class Property {
         unsigned long get_timestamp( void );
         bool is_readonly( void );
 
-        bool is_value_long( void );
-        bool is_value_ulong( void );
-        bool is_value_double( void );
-        bool is_value_bool( void );
-        bool is_value_string( void );
+        bool is_long( void );
+        bool is_ulong( void );
+        bool is_double( void );
+        bool is_bool( void );
+        bool is_string( void );
 
         long as_long( void );
         unsigned long as_ulong( void ) ;
@@ -81,7 +81,7 @@ class Property {
         bool set_ulong (unsigned long value);
         bool set_bool (bool value);
         bool set_double (double value);
-        bool set_string (const string &value);
+        bool set_string (const std::string &value);
 
         bool operator=(long value) {
             return set_long(value);

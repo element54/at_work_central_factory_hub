@@ -77,7 +77,7 @@ void Client::loop() {
             }
         }
     }
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+    boost::this_thread::sleep(boost::posix_time::milliseconds(250));
 }
 
 
@@ -120,21 +120,21 @@ void Client::process_property( web::json::object &property, std::vector<std::sha
         json::value value = property["value"];
         json::value min = property["min"];
         json::value max = property["max"];
-        if(p->is_value_long()) {
+        if(p->is_long()) {
             p->value_.long_ = value.as_number().to_int64();
             p->min_value_.long_ = min.as_number().to_int64();
             p->max_value_.long_ = max.as_number().to_int64();
-        } else if(p->is_value_ulong()) {
+        } else if(p->is_ulong()) {
             p->value_.ulong_ = value.as_number().to_uint64();
             p->min_value_.ulong_ = min.as_number().to_uint64();
             p->max_value_.ulong_ = max.as_number().to_uint64();
-        } else if(p->is_value_double()) {
+        } else if(p->is_double()) {
             p->value_.double_ = value.as_number().to_double();
             p->min_value_.double_ = min.as_number().to_double();
             p->max_value_.double_ = max.as_number().to_double();
-        } else if(p->is_value_bool()) {
+        } else if(p->is_bool()) {
             p->value_.bool_ = value.as_bool();
-        } else if(p->is_value_string()) {
+        } else if(p->is_string()) {
             p->value_.string_ = value.as_string().c_str();
         }
         changed.push_back(p);
@@ -176,23 +176,7 @@ std::shared_ptr<Property> Client::create_property( web::json::object &property )
     return p;
 }
 
-bool Client::update_property( Property *property ) {
-    using namespace web;
-    fawkes::MutexLocker lock(&mutex_);
-    if(!is_connected())
-        return false;
-    json::value object = json::value::object();
-    if(property->is_value_long()) {
-        object["value"] = json::value::number(property->as_long());
-    } else if(property->is_value_ulong()) {
-        object["value"] = json::value::number(property->as_ulong());
-    } else if(property->is_value_double()) {
-        object["value"] = json::value::number(property->as_double());
-    } else if(property->is_value_bool()) {
-        object["value"] = json::value::boolean(property->as_bool());
-    } else if(property->is_value_string()) {
-        object["value"] = json::value::string(property->as_string());
-    }
+bool Client::send_property_update( Property *property, web::json::value &object ) {
     try {
         auto response = http_client_->request(web::http::methods::PUT, property->uri_, object).get();
         return response.status_code() == web::http::status_codes::OK;
@@ -200,6 +184,62 @@ bool Client::update_property( Property *property ) {
         return false;
         //TODO what?
     }
+}
+
+bool Client::update_property( Property *property, long value ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    if(!property->is_long())
+        return false;
+    json::value object = json::value::object();
+    object["value"] = json::value::number(value);
+    return send_property_update( property, object );
+}
+bool Client::update_property( Property *property, unsigned long value ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    if(!property->is_ulong())
+        return false;
+    json::value object = json::value::object();
+    object["value"] = json::value::number(value);
+    return send_property_update( property, object );
+}
+bool Client::update_property( Property *property, double value ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    if(!property->is_double())
+        return false;
+    json::value object = json::value::object();
+    object["value"] = json::value::number(value);
+    return send_property_update( property, object );
+}
+bool Client::update_property( Property *property, bool value ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    if(!property->is_bool())
+        return false;
+    json::value object = json::value::object();
+    object["value"] = json::value::boolean(value);
+    return send_property_update( property, object );
+}
+bool Client::update_property( Property *property, const std::string &value ) {
+    using namespace web;
+    fawkes::MutexLocker lock(&mutex_);
+    if(!is_connected())
+        return false;
+    if(!property->is_string())
+        return false;
+    json::value object = json::value::object();
+    object["value"] = json::value::string(value);
+    return send_property_update( property, object );
 }
 
 void Client::all_for_now() {}

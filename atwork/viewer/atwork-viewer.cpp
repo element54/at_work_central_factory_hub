@@ -267,25 +267,37 @@ bool timeout_handler() {
   }
 
     if (rotating_turntable_state) {
+        Pango::Attribute fg_color_connected;
+        //Pango::Attribute fg_color_running;
         Gtk::Label *label_rotating_turntable_connected = 0;
-        builder->get_widget("label_rotating_turntable_connected", label_rotating_turntable_connected);
         Gtk::Label *label_rotating_turntable_running = 0;
+
+        builder->get_widget("label_rotating_turntable_connected", label_rotating_turntable_connected);
         builder->get_widget("label_rotating_turntable_running", label_rotating_turntable_running);
+
+        Pango::AttrList attr_list_connected = label_rotating_turntable_connected->get_attributes();
+        //Pango::AttrList attr_list_running = label_rotating_turntable_running->get_attributes();
 
         switch (rotating_turntable_state->connection_state()) {
             case atwork_pb_msgs::RotatingTurntableConnectionState::RTT_CONNECTED:
+                fg_color_connected = Pango::Attribute::create_attr_foreground(35466, 57825, 13364);
                 label_rotating_turntable_connected->set_text("Connected");
                 break;
             case atwork_pb_msgs::RotatingTurntableConnectionState::RTT_NOT_CONNECTED:
+                fg_color_connected = Pango::Attribute::create_attr_foreground(61423, 10537, 10537);
                 label_rotating_turntable_connected->set_text("NOT CONNECTED");
                 break;
         }
+
+        attr_list_connected.change(fg_color_connected);
+        label_rotating_turntable_connected->set_attributes(attr_list_connected);
+
         switch (rotating_turntable_state->state()) {
             case atwork_pb_msgs::RotatingTurntableRunMode::RTT_RUNNING:
-                label_rotating_turntable_connected->set_text("Running");
+                label_rotating_turntable_running->set_text("Running");
                 break;
             case atwork_pb_msgs::RotatingTurntableRunMode::RTT_STOPPED:
-                label_rotating_turntable_connected->set_text("Stopped");
+                label_rotating_turntable_running->set_text("Stopped");
                 break;
         }
     }
