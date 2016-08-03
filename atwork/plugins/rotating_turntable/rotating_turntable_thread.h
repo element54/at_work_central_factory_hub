@@ -32,30 +32,31 @@
 
 
 
-class RotatingTurntableThread: public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect, public fawkes::CLIPSAspect, public PropertyClient::Listener
+class RotatingTurntableThread : public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect,
+    public fawkes::CLIPSAspect, public PropertyClient::Listener
 {
-    public:
-        RotatingTurntableThread();
+public:
+    RotatingTurntableThread();
 
-        virtual void init();
-        virtual void loop();
-        virtual void finalize();
+    virtual void init();
+    virtual void loop();
+    virtual void finalize();
 
-        virtual void device_connected(const std::string &device_id);
-        virtual void device_error(const std::string &device_id);
-        virtual void device_disconnected(const std::string &device_id);
-        virtual void property_changed(const std::string &device_id, std::shared_ptr<PropertyClient::Property> property);
+    virtual void device_connected( const std::string &device_id );
+    virtual void device_error( const std::string &device_id );
+    virtual void device_disconnected( const std::string &device_id );
+    virtual void property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property );
 
-    private:
-        PropertyClient::Client *client_;
-        bool connected_ = false;
-        bool running_ = false;
+private:
+    PropertyClient::Client *client_;
+    bool connected_ = false;
+    bool running_ = false;
 
-        void clips_rotating_turntable_start();
-        void clips_rotating_turntable_stop();
-        bool clips_rotating_turntable_is_connected();
-        bool clips_rotating_turntable_is_running();
-    private:
+    void clips_rotating_turntable_start();
+    void clips_rotating_turntable_stop();
+    bool clips_rotating_turntable_is_connected();
+    bool clips_rotating_turntable_is_running();
+private:
 };
 
 #endif

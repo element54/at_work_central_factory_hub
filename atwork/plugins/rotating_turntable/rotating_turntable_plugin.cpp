@@ -27,19 +27,17 @@ using namespace fawkes;
 /** Plugin to interface with conveyor belt device
  * @author Frederik Hegger
  */
-class RotatingTurntablePlugin: public fawkes::Plugin
+class RotatingTurntablePlugin : public fawkes::Plugin
 {
-    public:
-        /** Constructor.
-         * @param config Fawkes configuration
-         */
-        RotatingTurntablePlugin(Configuration *config) :
-                Plugin(config)
-        {
-            thread_list.push_back(new RotatingTurntableThread());
-        }
+public:
+    /** Constructor.
+     * @param config Fawkes configuration
+     */
+    RotatingTurntablePlugin( Configuration *config ) :
+        Plugin( config ) {
+        thread_list.push_back( new RotatingTurntableThread() );
+    }
 };
 
-PLUGIN_DESCRIPTION("Plugin to communicate with the conveyor belt")
-EXPORT_PLUGIN(RotatingTurntablePlugin)
-
+PLUGIN_DESCRIPTION( "Plugin to communicate with the conveyor belt" )
+EXPORT_PLUGIN( RotatingTurntablePlugin )

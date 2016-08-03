@@ -41,81 +41,79 @@
 
 /** Constructor. */
 RotatingTurntableThread::RotatingTurntableThread() :
-        Thread("RotatingTurntableThread", Thread::OPMODE_CONTINUOUS)
-{
+    Thread( "RotatingTurntableThread", Thread::OPMODE_CONTINUOUS ) {
 }
 
-void RotatingTurntableThread::init()
-{
-    fawkes::MutexLocker lock(clips_mutex);
+void RotatingTurntableThread::init() {
+    fawkes::MutexLocker lock( clips_mutex );
 
-    clips->add_function("rotating-turntable-start", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_start)));
-    clips->add_function("rotating-turntable-stop", sigc::slot<void>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_stop)));
-    clips->add_function("rotating-turntable-is-running", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_running)));
-    clips->add_function("rotating-turntable-is-connected", sigc::slot<bool>(sigc::mem_fun(*this, &RotatingTurntableThread::clips_rotating_turntable_is_connected)));
+    clips->add_function( "rotating-turntable-start",
+                         sigc::slot<void>( sigc::mem_fun( *this, &RotatingTurntableThread::clips_rotating_turntable_start ) ) );
+    clips->add_function( "rotating-turntable-stop",
+                         sigc::slot<void>( sigc::mem_fun( *this, &RotatingTurntableThread::clips_rotating_turntable_stop ) ) );
+    clips->add_function( "rotating-turntable-is-running",
+                         sigc::slot<bool>( sigc::mem_fun( *this, &RotatingTurntableThread::clips_rotating_turntable_is_running ) ) );
+    clips->add_function( "rotating-turntable-is-connected",
+                         sigc::slot<bool>( sigc::mem_fun( *this, &RotatingTurntableThread::clips_rotating_turntable_is_connected ) ) );
 
-    client_ = new PropertyClient::Client(this, "rtt");
+    client_ = new PropertyClient::Client( this, "rtt" );
     client_->start();
 
-    if (!clips->build("(deffacts have-feature-rotating-turntable (have-feature RotatingTurntable))"))
-        logger->log_warn("ConveyorBelt", "Failed to build deffacts have-feature-rotating-turntable");
+    if( !clips->build( "(deffacts have-feature-rotating-turntable (have-feature RotatingTurntable))" ) )
+        logger->log_warn( "ConveyorBelt", "Failed to build deffacts have-feature-rotating-turntable" );
 }
 
-void RotatingTurntableThread::finalize()
-{
+void RotatingTurntableThread::finalize() {
     delete client_;
 }
 
-void RotatingTurntableThread::loop()
-{
+void RotatingTurntableThread::loop() {
     /*if(client_->is_connected()) {
         std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
         std::cout << property->get_id() << std::endl;
         std::cout << property->set_long(100) << std::endl;
-    }*/
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+       }*/
+    boost::this_thread::sleep( boost::posix_time::milliseconds( 1000 ) );
 }
 
 
-void RotatingTurntableThread::device_connected(const std::string &device_id) {
+void RotatingTurntableThread::device_connected( const std::string &device_id ) {
     //std::cout << "device_connected: " << device_id << std::endl;
     connected_ = true;
 }
 
-void RotatingTurntableThread::device_disconnected(const std::string &device_id) {
+void RotatingTurntableThread::device_disconnected( const std::string &device_id ) {
     //std::cout << "device_disconnected: " << device_id << std::endl;
     connected_ = false;
     running_ = false;
 }
 
-void RotatingTurntableThread::property_changed(const std::string &device_id, std::shared_ptr<PropertyClient::Property> property) {
+void RotatingTurntableThread::property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property ) {
     //std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
-    if(property->get_id() == "current_speed") {
+    if( property->get_id() == "current_speed" ) {
         running_ = (property->as_long() != 0l);
     }
 }
-void RotatingTurntableThread::device_error(const std::string &device_id) {
+void RotatingTurntableThread::device_error( const std::string &device_id ) {
     std::cout << "device_error: " << device_id << std::endl;
 }
 
-void RotatingTurntableThread::clips_rotating_turntable_start()
-{
-    if(!client_->is_connected())
+void RotatingTurntableThread::clips_rotating_turntable_start() {
+    if( !client_->is_connected() )
         return;
-    std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
-    if(property == NULL)
+    std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
+    if( property == NULL )
         return;
-    property->set_long(100);
+    property->set_long( 100 );
 }
 
-void RotatingTurntableThread::clips_rotating_turntable_stop()
-{
-    if(!client_->is_connected())
+void RotatingTurntableThread::clips_rotating_turntable_stop() {
+    if( !client_->is_connected() )
         return;
-    std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
-    if(property == NULL)
+    std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
+    if( property == NULL )
         return;
-    property->set_long(0);
+    property->set_long( 0 );
 }
 
 
