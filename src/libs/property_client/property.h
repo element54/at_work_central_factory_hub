@@ -1,10 +1,7 @@
-#pragma once
-
 /***************************************************************************
- *  conveyour_belt_thread.h - Thread to communicate with the conveyor belt
+ *  property.h
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -19,6 +16,9 @@
  *
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
+
+#pragma once
+
 #include "listener.h"
 #include "client.h"
 #include <string>

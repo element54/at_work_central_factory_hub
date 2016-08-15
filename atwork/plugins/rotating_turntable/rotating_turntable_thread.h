@@ -1,8 +1,7 @@
 /***************************************************************************
- *  conveyour_belt_thread.h - Thread to communicate with the conveyor belt
+ *  rotating_turntable_thread.h - Thread to communicate with the rotating turntable
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -25,8 +24,6 @@
 #include <aspect/logging.h>
 #include <aspect/clips.h>
 #include <aspect/configurable.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread/thread.hpp>
 #include <property_client/listener.h>
 #include <property_client/client.h>
 
@@ -39,7 +36,6 @@ public:
     RotatingTurntableThread();
 
     virtual void init();
-    virtual void loop();
     virtual void finalize();
 
     virtual void device_connected( const std::string &device_id );

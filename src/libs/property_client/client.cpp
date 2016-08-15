@@ -1,8 +1,7 @@
 /***************************************************************************
- *  conveyor_belt_thread.cpp - Thread to communicate with the conveyor belt
+ *  client.cpp
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify

@@ -1,8 +1,7 @@
 /***************************************************************************
- *  conveyor_belt_plugin.cpp - Conveyor belt plugin
+ *  rotating_turntable_plugin.cpp - Rotating Turntable plugin
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -24,20 +23,14 @@
 
 using namespace fawkes;
 
-/** Plugin to interface with conveyor belt device
- * @author Frederik Hegger
- */
 class RotatingTurntablePlugin : public fawkes::Plugin
 {
 public:
-    /** Constructor.
-     * @param config Fawkes configuration
-     */
     RotatingTurntablePlugin( Configuration *config ) :
         Plugin( config ) {
         thread_list.push_back( new RotatingTurntableThread() );
     }
 };
 
-PLUGIN_DESCRIPTION( "Plugin to communicate with the conveyor belt" )
+PLUGIN_DESCRIPTION( "Plugin to communicate with the rotating turntable" )
 EXPORT_PLUGIN( RotatingTurntablePlugin )

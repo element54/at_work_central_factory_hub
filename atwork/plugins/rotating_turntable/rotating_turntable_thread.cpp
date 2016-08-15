@@ -1,8 +1,7 @@
 /***************************************************************************
- *  conveyor_belt_thread.cpp - Thread to communicate with the conveyor belt
+ *  rotating_turntable_thread.cpp - Thread to communicate with the rotating turntable
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -21,27 +20,11 @@
 #include "rotating_turntable_thread.h"
 
 #include <core/threading/mutex_locker.h>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread/thread.hpp>
 
+#define LOG_COMPONENT "RotatingTurntable"
 
-#include <netcomm/dns-sd/avahi_thread.h>
-#include <netcomm/dns-sd/avahi_resolver_handler.h>
-
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-
-
-/** @class RotatingTurntableThread
- * Thread to communicate with @Work conveyor belt.
- * @author Frederik Hegger
- */
-
-/** Constructor. */
 RotatingTurntableThread::RotatingTurntableThread() :
-    Thread( "RotatingTurntableThread", Thread::OPMODE_CONTINUOUS ) {
+    Thread( "RotatingTurntableThread", Thread::OPMODE_WAITFORWAKEUP ) {
 }
 
 void RotatingTurntableThread::init() {
@@ -60,42 +43,37 @@ void RotatingTurntableThread::init() {
     client_->start();
 
     if( !clips->build( "(deffacts have-feature-rotating-turntable (have-feature RotatingTurntable))" ) )
-        logger->log_warn( "ConveyorBelt", "Failed to build deffacts have-feature-rotating-turntable" );
+        logger->log_warn( "RotatingTurntable", "Failed to build deffacts have-feature-rotating-turntable" );
 }
 
 void RotatingTurntableThread::finalize() {
     delete client_;
 }
 
-void RotatingTurntableThread::loop() {
-    /*if(client_->is_connected()) {
-        std::shared_ptr<PropertyClient::Property> property = client_->get_property("target_speed");
-        std::cout << property->get_id() << std::endl;
-        std::cout << property->set_long(100) << std::endl;
-       }*/
-    boost::this_thread::sleep( boost::posix_time::milliseconds( 1000 ) );
-}
-
 
 void RotatingTurntableThread::device_connected( const std::string &device_id ) {
-    //std::cout << "device_connected: " << device_id << std::endl;
     connected_ = true;
+    logger->log_info(LOG_COMPONENT, "%s connected", device_id.c_str());
 }
 
 void RotatingTurntableThread::device_disconnected( const std::string &device_id ) {
-    //std::cout << "device_disconnected: " << device_id << std::endl;
     connected_ = false;
     running_ = false;
+    logger->log_info(LOG_COMPONENT, "%s disconnected", device_id.c_str());
 }
 
 void RotatingTurntableThread::property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property ) {
-    //std::cout << "property_changed: " << device_id << ", " << property->get_id() << std::endl;
     if( property->get_id() == "current_speed" ) {
         running_ = (property->as_double() != 0.0);
+        if(running_) {
+            logger->log_info(LOG_COMPONENT, "%s is running", device_id.c_str());
+        } else {
+            logger->log_info(LOG_COMPONENT, "%s is NOT running", device_id.c_str());
+        }
     }
 }
 void RotatingTurntableThread::device_error( const std::string &device_id ) {
-    std::cout << "device_error: " << device_id << std::endl;
+    logger->log_error(LOG_COMPONENT, "%s error", device_id.c_str());
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_start() {
@@ -104,7 +82,7 @@ void RotatingTurntableThread::clips_rotating_turntable_start() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_double( 360.0 );
+    property->set_double( 720.0 );
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_stop() {

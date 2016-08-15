@@ -1,10 +1,7 @@
-#pragma once
-
 /***************************************************************************
- *  conveyour_belt_thread.h - Thread to communicate with the conveyor belt
+ *  client.h
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -20,13 +17,14 @@
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
 
+#pragma once
+
 #include <string>
 #include <unordered_map>
 #include <boost/thread/thread.hpp>
 
 #include <core/threading/thread.h>
 #include <netcomm/dns-sd/avahi_thread.h>
-#include <netcomm/dns-sd/avahi_resolver_handler.h>
 
 #include <cpprest/json.h>
 #include <cpprest/http_client.h>
