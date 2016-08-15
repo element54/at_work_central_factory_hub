@@ -253,17 +253,39 @@ bool timeout_handler() {
 
 
   if (conveyor_belt_state) {
-    Gtk::Label *label_conveyor_belt = 0;
-    builder->get_widget("label_conveyor_belt", label_conveyor_belt);
+      Pango::Attribute fg_color_connected;
+      //Pango::Attribute fg_color_running;
+      Gtk::Label *label_conveyor_belt_connected = 0;
+      Gtk::Label *label_conveyor_belt_running = 0;
 
-    switch (conveyor_belt_state->state()) {
-      case atwork_pb_msgs::ConveyorBeltRunMode::START:
-        label_conveyor_belt->set_text("Running");
-      break;
-      case atwork_pb_msgs::ConveyorBeltRunMode::STOP:
-        label_conveyor_belt->set_text("Stopped");
-      break;
-    }
+      builder->get_widget("label_conveyor_belt_connected", label_conveyor_belt_connected);
+      builder->get_widget("label_conveyor_belt_running", label_conveyor_belt_running);
+
+      Pango::AttrList attr_list_connected = label_conveyor_belt_connected->get_attributes();
+      //Pango::AttrList attr_list_running = label_conveyor_belt_running->get_attributes();
+
+      switch (conveyor_belt_state->connection_state()) {
+          case atwork_pb_msgs::ConveyorBeltConnectionState::CB_CONNECTED:
+              fg_color_connected = Pango::Attribute::create_attr_foreground(35466, 57825, 13364);
+              label_conveyor_belt_connected->set_text("Connected");
+              break;
+          case atwork_pb_msgs::ConveyorBeltConnectionState::CB_NOT_CONNECTED:
+              fg_color_connected = Pango::Attribute::create_attr_foreground(61423, 10537, 10537);
+              label_conveyor_belt_connected->set_text("NOT CONNECTED");
+              break;
+      }
+
+      attr_list_connected.change(fg_color_connected);
+      label_conveyor_belt_connected->set_attributes(attr_list_connected);
+
+      switch (conveyor_belt_state->state()) {
+          case atwork_pb_msgs::ConveyorBeltRunMode::CB_RUNNING:
+              label_conveyor_belt_running->set_text("Running");
+              break;
+          case atwork_pb_msgs::ConveyorBeltRunMode::CB_STOPPED:
+              label_conveyor_belt_running->set_text("Stopped");
+              break;
+      }
   }
 
     if (rotating_turntable_state) {

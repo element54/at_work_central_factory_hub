@@ -1,8 +1,7 @@
 /***************************************************************************
- *  conveyour_belt_thread.h - Thread to communicate with the conveyor belt
+ *  conveyor_belt_thread.h - Thread to communicate with the rotating turntable
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -18,49 +17,39 @@
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
 
-#ifndef __PLUGINS_CONVEYOR_BELT_THREAD_H_
-#define __PLUGINS_CONVEYOR_BELT_THREAD_H_
+#pragma once
 
 #include <core/threading/thread.h>
 #include <aspect/logging.h>
 #include <aspect/clips.h>
 #include <aspect/configurable.h>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <plugins/msgs/DeviceConveyorBelt.pb.h>
-#include <zmq.hpp>
+#include <property_client/listener.h>
+#include <property_client/client.h>
 
-class ConveyorBeltThread: public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect, public fawkes::CLIPSAspect
+
+
+class ConveyorBeltThread : public fawkes::Thread, public fawkes::LoggingAspect, public fawkes::ConfigurableAspect,
+    public fawkes::CLIPSAspect, public PropertyClient::Listener
 {
-    public:
-        ConveyorBeltThread();
+public:
+    ConveyorBeltThread();
 
-        virtual void init();
-        virtual void loop();
-        virtual void finalize();
+    virtual void init();
+    virtual void finalize();
 
-    private:
-        void clips_start_belt();
-        void clips_stop_belt();
-        bool clips_is_belt_running();
-        bool clips_is_device_connected();
+    virtual void device_connected( const std::string &device_id );
+    virtual void device_error( const std::string &device_id );
+    virtual void device_disconnected( const std::string &device_id );
+    virtual void property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property );
 
-        void setConveyorBeltRunMode(RunMode mode);
-        void receiveAndBufferStatusMsg();
+private:
+    PropertyClient::Client *client_;
+    bool connected_ = false;
+    bool running_ = false;
 
-    private:
-        zmq::context_t *zmq_context_;
-        zmq::socket_t *zmq_publisher_;
-        zmq::socket_t *zmq_subscriber_;
-
-        unsigned int cfg_timer_interval_;
-
-        ConveyorBeltStatus last_status_msg_;
-        zmq::message_t zmq_message_;
-
-        std::string default_network_interface_;
-
-        boost::posix_time::ptime prev_device_update_timestamp_;
-        boost::posix_time::ptime last_sent_command_timestamp_;
+    void clips_conveyor_belt_start();
+    void clips_conveyor_belt_stop();
+    bool clips_conveyor_belt_is_connected();
+    bool clips_conveyor_belt_is_running();
+private:
 };
-
-#endif

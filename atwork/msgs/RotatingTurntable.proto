@@ -37,32 +37,25 @@ enum RotatingTurntableConnectionState {
 }
 
 enum RotatingTurntableRunMode {
-  RTT_RUNNING  = 0;  // The conveyor belt is standing still
-  RTT_STOPPED = 1;  // The conveyor belt is moving
+  RTT_RUNNING  = 0;
+  RTT_STOPPED = 1;
 }
 
-// This message is only meant to be used by clients (i.e. not robots), e.g. to
-// visualize the conveyor belt status.
 message RotatingTurntableStatus {
   enum CompType {
     COMP_ID  = 2000;
     MSG_TYPE = 3100;
   }
 
-  // The current motion state of the conveyor belt
   required RotatingTurntableRunMode state = 1;
   required RotatingTurntableConnectionState connection_state = 2;
 }
 
-// This message is only meant to be used by clients (i.e. not robots), e.g. to
-// control the conveyor belt. Clients can always start and stop the conveyor
-// belt.
 message RotatingTurntableCommand {
   enum CompType {
     COMP_ID  = 2000;
     MSG_TYPE = 3110;
   }
 
-  // The desired motion state of the conveyor belt
   required RotatingTurntableRunMode command = 1;
 }

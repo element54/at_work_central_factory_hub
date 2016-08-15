@@ -1,8 +1,7 @@
 /***************************************************************************
  *  conveyor_belt_plugin.cpp - Conveyor belt plugin
  *
- *  Created: Mon Oct 06 16:39:11 2014
- *  Copyright  2014 Frederik Hegger
+ *  Copyright  2016 Torsten Jandt
  ****************************************************************************/
 
 /*  This program is free software; you can redistribute it and/or modify
@@ -23,16 +22,9 @@
 #include "conveyor_belt_thread.h"
 
 using namespace fawkes;
-
-/** Plugin to interface with conveyor belt device
- * @author Frederik Hegger
- */
 class ConveyorBeltPlugin: public fawkes::Plugin
 {
     public:
-        /** Constructor.
-         * @param config Fawkes configuration
-         */
         ConveyorBeltPlugin(Configuration *config) :
                 Plugin(config)
         {

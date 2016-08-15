@@ -1,5 +1,5 @@
 #*****************************************************************************
-#               Makefile Build System for Fawkes: RoCKIn conveyor belt
+#               Makefile Build System for Fawkes: RoCKIn rotating turntable
 #
 ##*****************************************************************************
 #
@@ -16,7 +16,6 @@ include $(BASEDIR)/etc/buildsys/config.mk
 include $(BUILDSYSDIR)/protobuf.mk
 include $(BUILDSYSDIR)/clips.mk
 include $(BUILDSYSDIR)/boost.mk
-include $(BUILDSYSDIR)/libzmq.mk
 include $(BASEDIR)/atwork/atwork.mk
 
 include $(BUILDCONFDIR)/netcomm/netcomm.mk
@@ -27,7 +26,7 @@ HAVE_BOOST_LIBS = $(call boost-have-libs,$(REQ_BOOST_LIBS))
 LIBS_rotating_turntable = llsfrbcore llsfrbaspects atwork_plugin_msgs llsfrbnetcomm crypto ssl cpprest property_client
 OBJS_rotating_turntable = rotating_turntable_plugin.o rotating_turntable_thread.o
 
-ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_LIBZMQ)$(HAVE_BOOST_LIBS),1111)
+ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_BOOST_LIBS),111)
   OBJS_all    = $(OBJS_rotating_turntable)
   PLUGINS_all = $(PLUGINDIR)/rotating_turntable.$(SOEXT)
 
@@ -42,9 +41,6 @@ else
   ifneq ($(HAVE_PROTOBUF),1)
     WARN_TARGETS += warning_protobuf
   endif
-  ifneq ($(HAVE_LIBZMQ),1)
-    WARN_TARGETS += warning_libzmq
-  endif
   ifneq ($(HAVE_BOOST_LIBS),1)
     WARN_TARGETS_BOOST = $(foreach l,$(REQ_BOOST_LIBS),$(if $(call boost-have-lib,$l),, warning_boost_$l))
   endif
@@ -53,8 +49,6 @@ endif
 ifeq ($(OBJSSUBMAKE),1)
 all: $(WARN_TARGETS) $(WARN_TARGETS_BOOST)
 .PHONY: warning_libmodbus warning_clips
-warning_libzmq:
-	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Cannot build Rotating Turntable Plugin$(TNORMAL) (libzmq not found)"
 warning_clips:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Cannot build Rotating Turntable Plugin$(TNORMAL) (clipsmm not found)"
 warning_protobuf:

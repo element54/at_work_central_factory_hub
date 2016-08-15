@@ -16,22 +16,23 @@ include $(BASEDIR)/etc/buildsys/config.mk
 include $(BUILDSYSDIR)/protobuf.mk
 include $(BUILDSYSDIR)/clips.mk
 include $(BUILDSYSDIR)/boost.mk
-include $(BUILDSYSDIR)/libzmq.mk
 include $(BASEDIR)/atwork/atwork.mk
 
-REQ_BOOST_LIBS = thread system
+include $(BUILDCONFDIR)/netcomm/netcomm.mk
+
+REQ_BOOST_LIBS = thread system asio
 HAVE_BOOST_LIBS = $(call boost-have-libs,$(REQ_BOOST_LIBS))
 
-LIBS_conveyor_belt = llsfrbcore llsfrbaspects atwork_plugin_msgs
+LIBS_conveyor_belt = llsfrbcore llsfrbaspects atwork_plugin_msgs llsfrbnetcomm crypto ssl cpprest property_client
 OBJS_conveyor_belt = conveyor_belt_plugin.o conveyor_belt_thread.o
 
-ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_LIBZMQ)$(HAVE_BOOST_LIBS),1111)
+ifeq ($(HAVE_CLIPS)$(HAVE_PROTOBUF)$(HAVE_BOOST_LIBS),111)
   OBJS_all    = $(OBJS_conveyor_belt)
   PLUGINS_all = $(PLUGINDIR)/conveyor_belt.$(SOEXT)
 
-  CFLAGS  += $(CFLAGS_CLIPS) ${CFLAGS_PROTOBUF} ${CFLAGS_LIBZMQ} \
+  CFLAGS  += $(CFLAGS_CLIPS) ${CFLAGS_PROTOBUF} \
              $(call boost-libs-cflags,$(REQ_BOOST_LIBS))
-  LDFLAGS += $(LDFLAGS_CLIPS) ${LDFLAGS_PROTOBUF} ${LDFLAGS_LIBZMQ} \
+  LDFLAGS += $(LDFLAGS_CLIPS) ${LDFLAGS_PROTOBUF} \
              $(call boost-libs-ldflags,$(REQ_BOOST_LIBS))
 else
   ifneq ($(HAVE_CLIPS),1)
@@ -39,9 +40,6 @@ else
   endif
   ifneq ($(HAVE_PROTOBUF),1)
     WARN_TARGETS += warning_protobuf
-  endif
-  ifneq ($(HAVE_LIBZMQ),1)
-    WARN_TARGETS += warning_libzmq
   endif
   ifneq ($(HAVE_BOOST_LIBS),1)
     WARN_TARGETS_BOOST = $(foreach l,$(REQ_BOOST_LIBS),$(if $(call boost-have-lib,$l),, warning_boost_$l))
@@ -51,8 +49,6 @@ endif
 ifeq ($(OBJSSUBMAKE),1)
 all: $(WARN_TARGETS) $(WARN_TARGETS_BOOST)
 .PHONY: warning_libmodbus warning_clips
-warning_libzmq:
-	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Cannot build Conveyor Belt Plugin$(TNORMAL) (libzmq not found)"
 warning_clips:
 	$(SILENT)echo -e "$(INDENT_PRINT)--> $(TRED)Cannot build Conveyor Belt Plugin$(TNORMAL) (clipsmm not found)"
 warning_protobuf:

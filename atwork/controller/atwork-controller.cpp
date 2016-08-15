@@ -216,7 +216,7 @@ void on_cb_start_click()
   if (!client.connected()) return;
 
   atwork_pb_msgs::ConveyorBeltCommand msg;
-  msg.set_command(atwork_pb_msgs::START);
+  msg.set_command(atwork_pb_msgs::CB_RUNNING);
   client.send(msg);
 }
 
@@ -226,7 +226,7 @@ void on_cb_stop_click()
   if (!client.connected()) return;
 
   atwork_pb_msgs::ConveyorBeltCommand msg;
-  msg.set_command(atwork_pb_msgs::STOP);
+  msg.set_command(atwork_pb_msgs::CB_STOPPED);
   client.send(msg);
 }
 

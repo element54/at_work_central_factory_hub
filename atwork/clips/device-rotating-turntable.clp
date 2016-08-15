@@ -1,5 +1,5 @@
 ;---------------------------------------------------------------------------
-;  device-conveyor-belt.clp - RoCKIn RefBox CLIPS - Conveyor belt interface
+;  device-rotating-turntable.clp - RoCKIn RefBox CLIPS - Conveyor belt interface
 ;
 ;  Licensed under BSD license, cf. LICENSE file
 ;---------------------------------------------------------------------------

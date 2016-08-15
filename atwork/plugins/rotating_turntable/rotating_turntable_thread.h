@@ -17,8 +17,7 @@
  *  Read the full text in the LICENSE.GPL file in the doc directory.
  */
 
-#ifndef __PLUGINS_ROTATING_TURNTABLE_THREAD_H_
-#define __PLUGINS_ROTATING_TURNTABLE_THREAD_H_
+#pragma once
 
 #include <core/threading/thread.h>
 #include <aspect/logging.h>
@@ -54,5 +53,3 @@ private:
     bool clips_rotating_turntable_is_running();
 private:
 };
-
-#endif
