@@ -39,7 +39,7 @@ void RotatingTurntableThread::init() {
     clips->add_function( "rotating-turntable-is-connected",
                          sigc::slot<bool>( sigc::mem_fun( *this, &RotatingTurntableThread::clips_rotating_turntable_is_connected ) ) );
 
-    client_ = new PropertyClient::Client( this, "rtt" );
+    client_ = new PropertyClient::Client( this, "rotating_turntable" );
     client_->start();
 
     if( !clips->build( "(deffacts have-feature-rotating-turntable (have-feature RotatingTurntable))" ) )
@@ -82,7 +82,7 @@ void RotatingTurntableThread::clips_rotating_turntable_start() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_double( 720.0 );
+    property->set_double( 180.0 );
 }
 
 void RotatingTurntableThread::clips_rotating_turntable_stop() {

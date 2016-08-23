@@ -39,7 +39,7 @@ void ConveyorBeltThread::init() {
     clips->add_function( "conveyor-belt-is-connected",
                          sigc::slot<bool>( sigc::mem_fun( *this, &ConveyorBeltThread::clips_conveyor_belt_is_connected ) ) );
 
-    client_ = new PropertyClient::Client( this, "cb" );
+    client_ = new PropertyClient::Client( this, "conveyor_belt" );
     client_->start();
 
     if( !clips->build( "(deffacts have-feature-conveyor-belt (have-feature ConveyorBelt))" ) )
@@ -82,7 +82,7 @@ void ConveyorBeltThread::clips_conveyor_belt_start() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_double( 720.0 );
+    property->set_long( 100 );
 }
 
 void ConveyorBeltThread::clips_conveyor_belt_stop() {
@@ -91,7 +91,7 @@ void ConveyorBeltThread::clips_conveyor_belt_stop() {
     std::shared_ptr<PropertyClient::Property> property = client_->get_property( "target_speed" );
     if( property == NULL )
         return;
-    property->set_double( 0.0 );
+    property->set_long( 0 );
 }
 
 
