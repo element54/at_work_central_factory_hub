@@ -64,7 +64,7 @@ void ConveyorBeltThread::device_disconnected( const std::string &device_id ) {
 
 void ConveyorBeltThread::property_changed( const std::string &device_id, std::shared_ptr<PropertyClient::Property> property ) {
     if( property->get_id() == "current_speed" ) {
-        running_ = (property->as_double() != 0.0);
+        running_ = (property->as_long() != 0);
         if(running_) {
             logger->log_info(LOG_COMPONENT, "%s is running", device_id.c_str());
         } else {
